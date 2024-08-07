@@ -1,5 +1,5 @@
 #+title Emacs Configuration
-#+PROPERTY: header-args:emacs-lisp :tangle ./init-new.el
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
 * Basic UI Configuration
 ** Package management
@@ -90,6 +90,7 @@
   "bp" '(previous-buffer :which-key "Previous")
   "bN" '(previous-buffer :which-key "Previous")
   "bl" '(counsel-switch-buffer :which-key "Switch")
+  "bk" '(kill-buffer :which-key Kill)
 
   "w"  '(:ignore w :which-key "Window")
   "ww" '(evil-window-next :which-key "Next")
@@ -105,6 +106,10 @@
   "hv" '(counsel-describe-variable :which-key "Describe Variable")
   "hf" '(counsel-describe-function :which-key "Describe Function")
   "hi" '(indent-region :which-key "Indent Region")
+
+  "f"  '(:ignore f :which-key "Files")
+  "fr" '(counsel-recentf :while-key "Recent Files")
+  "ff" '(find-file :while-key "Find File")
   ))
 
 #+end_src

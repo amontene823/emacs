@@ -46,46 +46,52 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package all-the-icons)
-  ;;:if (display-graphic-p)
-  ;; run on first install
-  ;; M-x all-the-icons-install-fonts
-  ;; M-x nerd-icons-install-fonts
+;;:if (display-graphic-p)
+;; run on first install
+;; M-x all-the-icons-install-fonts
+;; M-x nerd-icons-install-fonts
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package general
-:config
-(general-create-definer am/leader-keys
-:keymaps '(normal insert visual emacs)
-:prefix "SPC"
-:global-prefix "C-SPC")
-(am/leader-keys
-"t"  '(:ignore t :which-key "Toggles")
-"tt" '(counsel-load-theme :which-key "Choose Theme")
+  :config
+  (general-create-definer am/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+  (am/leader-keys
+    "t"  '(:ignore t :which-key "Toggles")
+    "tt" '(counsel-load-theme :which-key "Choose Theme")
 
-"b"  '(:ignore b :which-key "Buffer")
-"bb" '(next-buffer :which-key "Next")
-"bn" '(next-buffer :which-key "Next")
-"bp" '(previous-buffer :which-key "Previous")
-"bN" '(previous-buffer :which-key "Previous")
-"bl" '(counsel-switch-buffer :which-key "Switch")
+    "b"  '(:ignore b :which-key "Buffer")
+    "bb" '(next-buffer :which-key "Next")
+    "bn" '(next-buffer :which-key "Next")
+    "bp" '(previous-buffer :which-key "Previous")
+    "bN" '(previous-buffer :which-key "Previous")
+    "bl" '(counsel-switch-buffer :which-key "Switch")
+    "bk" '(kill-buffer :which-key Kill)
+    "br" '(revert-buffer :which-key Refresh)
 
-"w"  '(:ignore w :which-key "Window")
-"ww" '(evil-window-next :which-key "Next")
-"wn" '(evil-window-next :which-key "Next")
-"wN" '(evil-window-prev :which-key "Previous")
-"ws" '(evil-window-split :which-key "Horizontal Split")
-"wv" '(evil-window-vsplit :which-key "Vertical Split")
-"wc" '(evil-window-delete :which-key "Close")
+    "w"  '(:ignore w :which-key "Window")
+    "ww" '(evil-window-next :which-key "Next")
+    "wn" '(evil-window-next :which-key "Next")
+    "wN" '(evil-window-prev :which-key "Previous")
+    "ws" '(evil-window-split :which-key "Horizontal Split")
+    "wv" '(evil-window-vsplit :which-key "Vertical Split")
+    "wc" '(evil-window-delete :which-key "Close")
 
-":" '(counsel-M-x :which-key "M-x")
+    ":" '(counsel-M-x :which-key "M-x")
 
-"h"  '(:ignore h :which-key "Help")
-"hv" '(counsel-describe-variable :which-key "Describe Variable")
-"hf" '(counsel-describe-function :which-key "Describe Function")
-"hi" '(indent-region :which-key "Indent Region")
-))
+    "h"  '(:ignore h :which-key "Help")
+    "hv" '(counsel-describe-variable :which-key "Describe Variable")
+    "hf" '(counsel-describe-function :which-key "Describe Function")
+    "hi" '(indent-region :which-key "Indent Region")
+
+    "f"  '(:ignore f :which-key "Files")
+    "fr" '(counsel-recentf :while-key "Recent Files")
+    "ff" '(find-file :while-key "Find File")
+    ))
 
 ;; modeline completion
 (use-package ivy
@@ -161,6 +167,8 @@
   :config
   (evil-collection-init))
 
+(use-package micromamba)
+
 (defun am/org-font-setup ()
   ;; Replace list hyphen with dot
   (font-lock-add-keywords 'org-mode
@@ -178,6 +186,7 @@
     (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  ;; (set-face-attribute 'org-block nil :foreground unspecified :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
@@ -200,7 +209,11 @@
   :after org
   :hook (org-mode . org-bullets-mode))
 
-(use-package magit)
+(use-package magit
+:commands (magit-status magit-get-current-branch)
+:custom
+(magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
 (use-package transient)
 
 (use-package org-roam
