@@ -35,14 +35,14 @@
   (column-number-mode)
   (global-display-line-numbers-mode t)
   ;; Disable line numbers for some modes
-  (defun do-not-display-line-numbers-mode-hook()
+  (defun disable-line-numbers ()
     "Hook to disable line-number-mode"
     (display-line-numbers-mode 0))
-  (dolist (mode `(org-mode-hook
+  (dolist (hook `(org-mode-hook
   		term-mode-hook
   		shell-mode-hook
   		eshell-mode-hook))
-    (add-hook mode #'do-not-display-line-numbers-mode-hook))
+    (add-hook hook #'disable-line-numbers))
 
   ;; doom
   (use-package doom-themes)
@@ -120,18 +120,18 @@
   (use-package ivy
     :diminish
     :bind (("C-s" . swiper)
-  	 :map ivy-minibuffer-map
-  	 ("TAB" . ivy-alt-done)
-  	 ("C-l" . ivy-alt-done)
-  	 ("C-j" . ivy-next-line)
-  	 ("C-k" . ivy-previous-line)
-  	 :map ivy-switch-buffer-map
-  	 ("C-k" . ivy-previous-line)
-  	 ("C-l" . ivy-done)
-  	 ("C-d" . ivy-switch-buffer-kill)
-  	 :map ivy-reverse-i-search-map
-  	 ("C-k" . ivy-previous-line)
-  	 ("C-d" . ivy-reverse-i-search-kill))
+    	 :map ivy-minibuffer-map
+    	 ("TAB" . ivy-alt-done)
+    	 ("C-l" . ivy-alt-done)
+    	 ("C-j" . ivy-next-line)
+    	 ("C-k" . ivy-previous-line)
+    	 :map ivy-switch-buffer-map
+    	 ("C-k" . ivy-previous-line)
+    	 ("C-l" . ivy-done)
+    	 ("C-d" . ivy-switch-buffer-kill)
+    	 :map ivy-reverse-i-search-map
+    	 ("C-k" . ivy-previous-line)
+    	 ("C-d" . ivy-reverse-i-search-kill))
     :config
     (ivy-mode 1))
   ;; Key bindings and documentation string
@@ -218,6 +218,11 @@
     (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
     (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
+  (defun am/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
   (use-package org
     :hook
     (org-mode . am/org-mode-setup)
@@ -257,12 +262,13 @@
 ** Org babel
 #+begin_src emacs-lisp
 
-  ;; Org babel languages
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (python . t)))
-  (setq org-confirm-babel-evaluate nil)
+    ;; Org babel languages
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (shell . t)))
+    (setq org-confirm-babel-evaluate nil)
 
 #+end_src
 *** Structure Templates
