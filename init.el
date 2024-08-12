@@ -30,7 +30,8 @@
 (dolist (hook `(org-mode-hook
 		term-mode-hook
 		shell-mode-hook
-		eshell-mode-hook))
+		eshell-mode-hook
+		pdf-view-mode-hook))
   (add-hook hook #'disable-line-numbers))
 
 ;; doom
@@ -46,10 +47,10 @@
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package all-the-icons)
-  ;;:if (display-graphic-p)
-  ;; run on first install
-  ;; M-x all-the-icons-install-fonts
-  ;; M-x nerd-icons-install-fonts
+;;:if (display-graphic-p)
+;; run on first install
+;; M-x all-the-icons-install-fonts
+;; M-x nerd-icons-install-fonts
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -96,20 +97,35 @@
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
-  	 :map ivy-minibuffer-map
-  	 ("TAB" . ivy-alt-done)
-  	 ("C-l" . ivy-alt-done)
-  	 ("C-j" . ivy-next-line)
-  	 ("C-k" . ivy-previous-line)
-  	 :map ivy-switch-buffer-map
-  	 ("C-k" . ivy-previous-line)
-  	 ("C-l" . ivy-done)
-  	 ("C-d" . ivy-switch-buffer-kill)
-  	 :map ivy-reverse-i-search-map
-  	 ("C-k" . ivy-previous-line)
-  	 ("C-d" . ivy-reverse-i-search-kill))
+     	 :map ivy-minibuffer-map
+     	 ("TAB" . ivy-alt-done)
+     	 ("C-l" . ivy-alt-done)
+     	 ("C-j" . ivy-next-line)
+     	 ("C-k" . ivy-previous-line)
+     	 :map ivy-switch-buffer-map
+     	 ("C-k" . ivy-previous-line)
+     	 ("C-l" . ivy-done)
+     	 ("C-d" . ivy-switch-buffer-kill)
+     	 :map ivy-reverse-i-search-map
+     	 ("C-k" . ivy-previous-line)
+     	 ("C-d" . ivy-reverse-i-search-kill))
   :config
   (ivy-mode 1))
+(use-package ivy-bibtex
+  :after (ivy)
+  :custom
+  (bibtex-completion-bibliography '("~/org/references/bibfile.bib"))
+  (bibtex-completion-library-path '("~/org/references")))
+
+(use-package org-ref
+  :after ivy-bibtex
+  :custom
+  (reftex-default-bibliography '("~/org/references/bibfile.bib"))
+  ;;(org-ref-bibliography-notes "~/org/references/notes.org")
+  (org-ref-default-bibliography '("~/org/references/bibfile.bib"))
+  (org-ref-pdf-directory "~/org/references/"))
+(require 'org-ref-ivy)
+
 ;; Key bindings and documentation string
 (use-package ivy-rich
   :config
@@ -165,6 +181,16 @@
   :after evil
   :config
   (evil-collection-init))
+
+;; (use-package org-ai
+;;   :ensure t
+;; :commands (org-ai-mode
+;;            org-ai-global-mode)
+;; :init
+;; (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+;; (org-ai-global-mode) ; installs global keybindings on C-c M-a
+;; :config
+;; (setq org-ai-default-chat-model "gpt-4o-mini") ; if you are on the gpt-4 beta:
 
 (defun am/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -230,6 +256,10 @@
 
 (use-package vterm)
 
+(use-package pdf-tools
+  :config
+  (pdf-tools-install :no-query))
+
 ;; Org babel languages
 (org-babel-do-load-languages
  'org-babel-load-languages
@@ -242,16 +272,3 @@
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(org-ai which-key vterm rainbow-delimiters org-roam org-bullets micromamba magit ivy-rich helpful general evil-collection doom-themes doom-modeline counsel command-log-mode all-the-icons)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
