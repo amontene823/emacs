@@ -72,149 +72,125 @@
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 #+end_src
-**  General
-#+begin_src emacs-lisp
-
-  (use-package general
-  :config
-  (general-create-definer am/leader-keys
-  :keymaps '(normal insert visual emacs)
-  :prefix "SPC"
-  :global-prefix "C-SPC")
-  (am/leader-keys
-  "t"  '(:ignore t :which-key "Toggles")
-  "tt" '(counsel-load-theme :which-key "Choose Theme")
-
-  "b"  '(:ignore b :which-key "Buffer")
-  "bb" '(next-buffer :which-key "Next")
-  "bn" '(next-buffer :which-key "Next")
-  "bp" '(previous-buffer :which-key "Previous")
-  "bN" '(previous-buffer :which-key "Previous")
-  "bl" '(counsel-switch-buffer :which-key "Switch")
-  "bk" '(kill-buffer :which-key Kill)
-
-  "w"  '(:ignore w :which-key "Window")
-  "ww" '(evil-window-next :which-key "Next")
-  "wn" '(evil-window-next :which-key "Next")
-  "wN" '(evil-window-prev :which-key "Previous")
-  "ws" '(evil-window-split :which-key "Horizontal Split")
-  "wv" '(evil-window-vsplit :which-key "Vertical Split")
-  "wc" '(evil-window-delete :which-key "Close")
-
-  ":" '(counsel-M-x :which-key "M-x")
-
-  "h"  '(:ignore h :which-key "Help")
-  "hv" '(counsel-describe-variable :which-key "Describe Variable")
-  "hf" '(counsel-describe-function :which-key "Describe Function")
-  "hi" '(indent-region :which-key "Indent Region")
-
-  "f"  '(:ignore f :which-key "Files")
-  "fr" '(counsel-recentf :while-key "Recent Files")
-  "ff" '(find-file :while-key "Find File")
-  ))
-
-#+end_src
 * Packages
 #+begin_src emacs-lisp
 
-  ;; modeline completion
-  (use-package ivy
-    :diminish
-    :bind (("C-s" . swiper)
-       	 :map ivy-minibuffer-map
-       	 ("TAB" . ivy-alt-done)
-       	 ("C-l" . ivy-alt-done)
-       	 ("C-j" . ivy-next-line)
-       	 ("C-k" . ivy-previous-line)
-       	 :map ivy-switch-buffer-map
-       	 ("C-k" . ivy-previous-line)
-       	 ("C-l" . ivy-done)
-       	 ("C-d" . ivy-switch-buffer-kill)
-       	 :map ivy-reverse-i-search-map
-       	 ("C-k" . ivy-previous-line)
-       	 ("C-d" . ivy-reverse-i-search-kill))
-    :config
-    (ivy-mode 1))
-  (use-package ivy-bibtex
-    :after (ivy)
-    :custom
-    (bibtex-completion-bibliography '("~/org/references/bibfile.bib"))
-    (bibtex-completion-library-path '("~/org/references")))
+     ;; modeline completion
+     (use-package ivy
+       :diminish
+       :bind (("C-s" . swiper)
+              :map ivy-minibuffer-map
+              ("TAB" . ivy-alt-done)
+              ("C-l" . ivy-alt-done)
+              ("C-j" . ivy-next-line)
+              ("C-k" . ivy-previous-line)
+              :map ivy-switch-buffer-map
+              ("C-k" . ivy-previous-line)
+              ("C-l" . ivy-done)
+              ("C-d" . ivy-switch-buffer-kill)
+              :map ivy-reverse-i-search-map
+              ("C-k" . ivy-previous-line)
+              ("C-d" . ivy-reverse-i-search-kill))
+       :config
+       (ivy-mode 1))
+     ;; (use-package ivy-bibtex
+     ;;   :after (ivy)
+     ;;   :custom
+     ;;   (bibtex-completion-bibliography '("~/org/references/bibfile.bib"))
+     ;;   (bibtex-completion-library-path '("~/org/references")))
 
-  (use-package org-ref
-    :after ivy-bibtex
-    :custom
-    (reftex-default-bibliography '("~/org/references/bibfile.bib"))
-    ;;(org-ref-bibliography-notes "~/org/references/notes.org")
-    (org-ref-default-bibliography '("~/org/references/bibfile.bib"))
-    (org-ref-pdf-directory "~/org/references/"))
-  (require 'org-ref-ivy)
+     ;; (use-package org-ref
+     ;;   :after ivy-bibtex
+     ;;   :custom
+     ;;   (reftex-default-bibliography '("~/org/references/bibfile.bib"))
+     ;;   ;;(org-ref-bibliography-notes "~/org/references/notes.org")
+     ;;   (org-ref-default-bibliography '("~/org/references/bibfile.bib"))
+     ;;   (org-ref-pdf-directory "~/org/references/"))
+     ;; (require 'org-ref-ivy)
 
-  ;; Key bindings and documentation string
-  (use-package ivy-rich
-    :config
-    (ivy-rich-mode 1))
+     (use-package auctex
+       ;;:defer t
+       :hook ((LaTeX-mode . LaTeX-preview-setup)
+              (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
+              ;;(LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
+              (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
+       :config
+       (setq TeX-auto-save t)
+       (setq TeX-parse-self t)
+       (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
+       (setq TeX-PDF-mode t))
 
-  (use-package which-key
-    :diminish which-key-mode
-    :config
-    (setq which-key-idle-delay 0)
-    (which-key-mode))
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+       TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+       LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)"))
+       TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
+    ;; to use pdfview with auctex
 
-  (use-package counsel
-    :bind (("M-x" . counsel-M-x)
-           ("C-x b" . counsel-ibuffer)
-           ("C-x C-f" . counsel-find-file)
-           :map minibuffer-local-map
-           ("C-r" . 'counsel-minibuffer-history))
-    :config
-    (setq ivy-initial-inputs-alist nil))
+     (use-package company-auctex
+       :after (company auctex)
+       :config
+       (company-auctex-init))
 
-  (use-package helpful
-    :custom
-    (counsel-describe-function-function #'helpful-callable)
-    (counsel-describe-variable-function #'helpful-variable)
-    :bind
-    ([remap describe-function] . counsel-describe-function)
-    ([remap describe-command] . helpful-command)
-    ([remap describe-variable] . counsel-describe-variable)
-    ([remap describe-key] . helpful-key))
+     (use-package latex-preview-pane
+       ;;:after auctex
+       :hook (LaTeX-mode . latex-preview-pane-mode))
 
-  (use-package evil
-    :init
-    (setq evil-want-integration t)
-    (setq evil-want-keybinding nil)
-    ;;(setq evil-want-C-u-scroll t)
-    ;;(setq evil-want-C-i-jump nil)
-    ;;:hook (evil-mode . am/evil-hook)
-    :config
-    (evil-mode 1)
-    ;;(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-    ;;(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+     ;; Key bindings and documentation string
+     (use-package ivy-rich
+       :config
+       (ivy-rich-mode 1))
 
-    ;; Use visual line motions even outside of visual-line-mode buffers
-    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+     (use-package which-key
+       :diminish which-key-mode
+       :config
+       (setq which-key-idle-delay 0)
+       (which-key-mode))
 
-    (evil-set-initial-state 'messages-buffer-mode 'normal)
-    (evil-set-initial-state 'dashboard-mode 'normal)
+     (use-package counsel
+       :bind (("M-x" . counsel-M-x)
+              ("C-x b" . counsel-ibuffer)
+              ("C-x C-f" . counsel-find-file)
+              :map minibuffer-local-map
+              ("C-r" . 'counsel-minibuffer-history))
+       :config
+       (setq ivy-initial-inputs-alist nil))
 
-    (evil-set-undo-system 'undo-redo)) ;; undo-redo functionality
+     (use-package helpful
+       :custom
+       (counsel-describe-function-function #'helpful-callable)
+       (counsel-describe-variable-function #'helpful-variable)
+       :bind
+       ([remap describe-function] . counsel-describe-function)
+       ([remap describe-command] . helpful-command)
+       ([remap describe-variable] . counsel-describe-variable)
+       ([remap describe-key] . helpful-key))
 
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
+     (use-package evil
+       :init
+       (setq evil-want-integration t)
+       (setq evil-want-keybinding nil)
+       ;;(setq evil-want-C-u-scroll t)
+       ;;(setq evil-want-C-i-jump nil)
+       ;;:hook (evil-mode . am/evil-hook)
+       :config
+       (evil-mode 1)
+       ;;(define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+       ;;(define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-  ;; (use-package org-ai
-  ;;   :ensure t
-  ;; :commands (org-ai-mode
-  ;;            org-ai-global-mode)
-  ;; :init
-  ;; (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
-  ;; (org-ai-global-mode) ; installs global keybindings on C-c M-a
-  ;; :config
-  ;; (setq org-ai-default-chat-model "gpt-4o-mini") ; if you are on the gpt-4 beta:
+       ;; Use visual line motions even outside of visual-line-mode buffers
+       (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+       (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+       (evil-set-initial-state 'messages-buffer-mode 'normal)
+       (evil-set-initial-state 'dashboard-mode 'normal)
+
+       (evil-set-undo-system 'undo-redo)) ;; undo-redo functionality
+
+     (use-package evil-collection
+       :after evil
+       :config
+       (evil-collection-init))
+
 
 #+end_src
 
@@ -312,24 +288,48 @@
 
 #+end_src
 
-*** Python Example
-#+begin_src python :results graphics file output :file temp_plot.png
+**  General
+#+begin_src emacs-lisp
 
-  import numpy as np
-  import matplotlib.pyplot as plt
+  (use-package general
+    :config
+    (general-create-definer am/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC")
+    (am/leader-keys
+      "t"  '(:ignore t :which-key "Toggles")
+      "tt" '(counsel-load-theme :which-key "Choose Theme")
 
-  print('hello world')
-  print('Yo')
-  print(np.sin(30))
+      "b"  '(:ignore b :which-key "Buffer")
+      "bb" '(next-buffer :which-key "Next")
+      "bn" '(next-buffer :which-key "Next")
+      "bp" '(previous-buffer :which-key "Previous")
+      "bN" '(previous-buffer :which-key "Previous")
+      "bl" '(counsel-switch-buffer :which-key "Switch")
+      "bk" '(kill-buffer :which-key Kill)
 
-  x = np.linspace(0, 10, 100)
-  y = np.sin(x)
-  fig, ax = plt.subplots()
-  ax.plot(x, y)
-  plt.savefig('.config/emacs/temp_plot.png')
-  #plt.show()
+      "w"  '(:ignore w :which-key "Window")
+      "ww" '(evil-window-next :which-key "Next")
+      "wn" '(evil-window-next :which-key "Next")
+      "wN" '(evil-window-prev :which-key "Previous")
+      "ws" '(evil-window-split :which-key "Horizontal Split")
+      "wv" '(evil-window-vsplit :which-key "Vertical Split")
+      "wc" '(evil-window-delete :which-key "Close")
+
+      ":" '(counsel-M-x :which-key "M-x")
+
+      "h"  '(:ignore h :which-key "Help")
+      "hv" '(counsel-describe-variable :which-key "Describe Variable")
+      "hf" '(counsel-describe-function :which-key "Describe Function")
+      "hi" '(indent-region :which-key "Indent Region")
+
+      "f"  '(:ignore f :which-key "Files")
+      "fr" '(counsel-recentf :while-key "Recent Files")
+      "ff" '(find-file :while-key "Find File")
+
+      "l"  '(:ignore l :which-key "Latex")
+      "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
+      ))
 
 #+end_src
-
-#+RESULTS:
-[[file:temp_plot.png]]
