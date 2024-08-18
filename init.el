@@ -28,10 +28,10 @@
   "Hook to disable line-number-mode"
   (display-line-numbers-mode 0))
 (dolist (hook `(org-mode-hook
-		term-mode-hook
-		shell-mode-hook
-		eshell-mode-hook
-		pdf-view-mode-hook))
+  	      term-mode-hook
+  	      shell-mode-hook
+  	      eshell-mode-hook
+  	      pdf-view-mode-hook))
   (add-hook hook #'disable-line-numbers))
 
 ;; doom
@@ -178,13 +178,13 @@
                                      (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
           ;; Set faces for heading levels
           (dolist (face '((org-level-1 . 1.4)
-          		  (org-level-2 . 1.2)
-          		  (org-level-3 . 1.1)
-          		  (org-level-4 . 1.0)
-          		  (org-level-5 . 1.0)
-          		  (org-level-6 . 1.0)
-          		  (org-level-7 . 1.0)
-          		  (org-level-8 . 1.0)))
+                        (org-level-2 . 1.2)
+                        (org-level-3 . 1.1)
+                        (org-level-4 . 1.0)
+                        (org-level-5 . 1.0)
+                        (org-level-6 . 1.0)
+                        (org-level-7 . 1.0)
+                        (org-level-8 . 1.0)))
             (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
           ;; Ensure that anything that should be fixed-pitch in Org files appears that way
           (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -205,9 +205,9 @@
           (org-mode . am/org-mode-setup)
           :config
           (setq org-ellipsis " ▾"
-          	org-hide-emphasis-markers nil
-          	org-agenda-files
-          	'("~/org"))
+              org-hide-emphasis-markers nil
+              org-agenda-files
+              '("~/org"))
           (auto-revert-mode 1)
           (am/org-font-setup))
 
@@ -226,10 +226,10 @@
           (org-roam-db-autosync-mode)
           (org-roam-completion-everywhere t)
           :bind (("C-c n l" . org-roam-buffer-toggle)
-        	 ("C-c n f" . org-roam-node-find)
-        	 ("C-c n i" . org-roam-node-insert)
-        	 :map org-mode-map
-        	 ("C-M-i" . completion-at-point))
+               ("C-c n f" . org-roam-node-find)
+               ("C-c n i" . org-roam-node-insert)
+               :map org-mode-map
+               ("C-M-i" . completion-at-point))
           :config
           (org-roam-setup))
 
@@ -238,6 +238,11 @@
         (use-package pdf-tools
           :config
           (pdf-tools-install :no-query))
+
+    (defun my-pdf-view-mode-hook ()
+      "Custom hook to fit PDF page to window on opening"
+      (pdf-view-fit-page-to-window))
+    (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
 
     (use-package citar
       :custom
@@ -284,6 +289,11 @@
   :after citar embark
   :no-require
   :config (citar-embark-mode))
+
+(use-package org-download
+:hook
+(dired-mode-hook . org-download-enable)
+:config (org-download-enable))
 
 ;; Org babel languages
 (org-babel-do-load-languages
@@ -338,16 +348,3 @@
     "l"  '(:ignore l :which-key "Latex")
     "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
     ))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(which-key vterm rainbow-delimiters pdf-tools org-roam org-ref org-bullets org-ai micromamba marginalia magit latex-preview-pane ivy-rich ivy-bibtex helpful general evil-collection embark-consult doom-themes doom-modeline counsel company-auctex command-log-mode citar-embark all-the-icons)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
