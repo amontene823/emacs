@@ -265,6 +265,11 @@
             :config
             (pdf-tools-install :no-query))
 
+      (defun my-pdf-view-mode-hook ()
+        "Custom hook to fit PDF page to window on opening"
+        (pdf-view-fit-page-to-window))
+      (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
+
       (use-package citar
         :custom
         (citar-bibliography '("~/org/references/bibfile.bib"))

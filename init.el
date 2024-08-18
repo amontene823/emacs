@@ -338,3 +338,16 @@
     "l"  '(:ignore l :which-key "Latex")
     "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
     ))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(which-key vterm rainbow-delimiters pdf-tools org-roam org-ref org-bullets org-ai micromamba marginalia magit latex-preview-pane ivy-rich ivy-bibtex helpful general evil-collection embark-consult doom-themes doom-modeline counsel company-auctex command-log-mode citar-embark all-the-icons)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
