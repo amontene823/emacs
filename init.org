@@ -197,134 +197,131 @@
 * Org
 #+begin_src emacs-lisp
 
-            (defun am/org-font-setup ()
-              ;; Replace list hyphen with dot
-              (font-lock-add-keywords 'org-mode
-                                      '(("^ *\\([-]\\) "
-                                         (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-              ;; Set faces for heading levels
-              (dolist (face '((org-level-1 . 1.4)
-                            (org-level-2 . 1.2)
-                            (org-level-3 . 1.1)
-                            (org-level-4 . 1.0)
-                            (org-level-5 . 1.0)
-                            (org-level-6 . 1.0)
-                            (org-level-7 . 1.0)
-                            (org-level-8 . 1.0)))
-                (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
-              ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-              (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-              (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-              (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-              (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-              (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-              (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-              (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+              (defun am/org-font-setup ()
+                ;; Replace list hyphen with dot
+                (font-lock-add-keywords 'org-mode
+                                        '(("^ *\\([-]\\) "
+                                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+                ;; Set faces for heading levels
+                (dolist (face '((org-level-1 . 1.4)
+                              (org-level-2 . 1.2)
+                              (org-level-3 . 1.1)
+                              (org-level-4 . 1.0)
+                              (org-level-5 . 1.0)
+                              (org-level-6 . 1.0)
+                              (org-level-7 . 1.0)
+                              (org-level-8 . 1.0)))
+                  (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+                ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+                (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+                (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+                (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+                (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+                (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+                (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+                (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-            (defun am/org-mode-setup ()
-            (org-indent-mode)
-            (variable-pitch-mode 1)
-            (visual-line-mode 1))
+              (defun am/org-mode-setup ()
+              (org-indent-mode)
+              (variable-pitch-mode 1)
+              (visual-line-mode 1))
 
-            (use-package org
-              :hook
-              (org-mode . am/org-mode-setup)
-              :config
-              (setq org-ellipsis " ▾"
-                  org-hide-emphasis-markers nil
-                  org-agenda-files
-                  '("~/org"))
-              (auto-revert-mode 1)
-              (am/org-font-setup))
+              (use-package org
+                :hook
+                (org-mode . am/org-mode-setup)
+                :config
+                (setq org-ellipsis " ▾"
+                    org-hide-emphasis-markers nil
+                    org-agenda-files
+                    '("~/org"))
+                (auto-revert-mode 1)
+                (am/org-font-setup))
 
-            (use-package org-bullets
-              :after org
-              :hook (org-mode . org-bullets-mode))
+              (use-package org-bullets
+                :after org
+                :hook (org-mode . org-bullets-mode))
 
-            (use-package magit)
-            (use-package transient)
+              (use-package magit)
+              (use-package transient)
 
-            (use-package org-roam
-              :init
-              (setq org-roam-vs-ack t)
-              :custom
-              (org-roam-directory (file-truename "~/org/roam/"))
-              (org-roam-db-autosync-mode)
-              (org-roam-completion-everywhere t)
-              :bind (("C-c n l" . org-roam-buffer-toggle)
-                   ("C-c n f" . org-roam-node-find)
-                   ("C-c n i" . org-roam-node-insert)
-                   :map org-mode-map
-                   ("C-M-i" . completion-at-point))
-              :config
-              (org-roam-setup))
+              (use-package org-roam
+                :init
+                (setq org-roam-vs-ack t)
+                :custom
+                (org-roam-directory (file-truename "~/org/roam/"))
+                (org-roam-db-autosync-mode)
+                (org-roam-completion-everywhere t)
+                :bind (("C-c n l" . org-roam-buffer-toggle)
+                     ("C-c n f" . org-roam-node-find)
+                     ("C-c n i" . org-roam-node-insert)
+                     :map org-mode-map
+                     ("C-M-i" . completion-at-point))
+                :config
+                (org-roam-setup))
 
-            (use-package vterm)
+              (use-package vterm)
 
-            (use-package pdf-tools
-              :config
-              (pdf-tools-install :no-query))
+              (use-package pdf-tools
+                :config
+                (pdf-tools-install :no-query))
 
-        (defun my-pdf-view-mode-hook ()
-          "Custom hook to fit PDF page to window on opening"
-          (pdf-view-fit-page-to-window))
-        (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
+          (defun my-pdf-view-mode-hook ()
+            "Custom hook to fit PDF page to window on opening"
+            (pdf-view-fit-page-to-window))
+          (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
 
-        (use-package citar
-          :custom
-          (citar-bibliography '("~/org/references/bibfile.bib"))
-          ;;(citar-library-paths '("~/Zotero/storage*"))
+          (use-package citar
+            :custom
+            (citar-bibliography '("~/org/references/bibfile.bib"))
+            ;;(citar-library-paths '("~/Zotero/storage*"))
+            :hook
+            (LaTeX-mode . citar-capf-setup)
+            (org-mode . citar-capf-setup))
+          (setq org-cite-global-bibliography '("~/org/references/bibfile.bib"))
+
+        (use-package marginalia
+          :config
+          (marginalia-mode))
+
+        (use-package embark
+          :bind
+          (("C-." . embark-act)         ;; pick some comfortable binding
+           ("C-;" . embark-dwim)        ;; good alternative: M-.
+           ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+          :init
+          ;; Optionally replace the key help with a completing-read interface
+          (setq prefix-help-command #'embark-prefix-help-command)
+
+          ;; Show the Embark target at point via Eldoc. You may adjust the
+          ;; Eldoc strategy, if you want to see the documentation from
+          ;; multiple providers. Beware that using this can be a little
+          ;; jarring since the message shown in the minibuffer can be more
+          ;; than one line, causing the modeline to move up and down:
+
+          ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
+          ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
+          :config
+          ;; Hide the mode line of the Embark live/completions buffers
+          (add-to-list 'display-buffer-alist
+                       '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                         nil
+                         (window-parameters (mode-line-format . none)))))
+        ;; Consult users will also want the embark-consult package.
+        (use-package embark-consult
           :hook
-          (LaTeX-mode . citar-capf-setup)
-          (org-mode . citar-capf-setup))
-        (setq org-cite-global-bibliography '("~/org/references/bibfile.bib"))
+          (embark-collect-mode . consult-preview-at-point-mode))
 
-      (use-package marginalia
-        :config
-        (marginalia-mode))
+      (use-package citar-embark
+        :after citar embark
+        :no-require
+        :config (citar-embark-mode))
 
-      (use-package embark
-        :bind
-        (("C-." . embark-act)         ;; pick some comfortable binding
-         ("C-;" . embark-dwim)        ;; good alternative: M-.
-         ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-        :init
-        ;; Optionally replace the key help with a completing-read interface
-        (setq prefix-help-command #'embark-prefix-help-command)
-
-        ;; Show the Embark target at point via Eldoc. You may adjust the
-        ;; Eldoc strategy, if you want to see the documentation from
-        ;; multiple providers. Beware that using this can be a little
-        ;; jarring since the message shown in the minibuffer can be more
-        ;; than one line, causing the modeline to move up and down:
-
-        ;; (add-hook 'eldoc-documentation-functions #'embark-eldoc-first-target)
-        ;; (setq eldoc-documentation-strategy #'eldoc-documentation-compose-eagerly)
-        :config
-        ;; Hide the mode line of the Embark live/completions buffers
-        (add-to-list 'display-buffer-alist
-                     '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                       nil
-                       (window-parameters (mode-line-format . none)))))
-      ;; Consult users will also want the embark-consult package.
-      (use-package embark-consult
-        :hook
-        (embark-collect-mode . consult-preview-at-point-mode))
-
-    (use-package citar-embark
-      :after citar embark
-      :no-require
-      :config (citar-embark-mode))
-
-    ;; (use-package org-download
-    ;; :hook
-    ;; (dired-mode-hook . org-download-enable)
-    ;; :config (org-download-enable))
-  (use-package org-download
-    :config
-    (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
-    (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
-    (add-hook 'dired-mode-hook 'org-download-enable))  ; Enable org-download in dired-mode
+    (use-package org-download
+      :config
+      (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
+      (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
+      (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
+      (org-download-enable))  
 
 #+end_src
 ** Org babel
