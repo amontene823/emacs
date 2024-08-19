@@ -243,15 +243,18 @@
         "Custom hook to fit PDF page to window on opening"
         (pdf-view-fit-page-to-window))
       (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
+      (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
       (use-package citar
         :custom
         (citar-bibliography '("~/org/references/bibfile.bib"))
+        (citar-open-entry-function #'citar-open-entry-in-zotero)
         ;;(citar-library-paths '("~/Zotero/storage*"))
         :hook
         (LaTeX-mode . citar-capf-setup)
         (org-mode . citar-capf-setup))
       (setq org-cite-global-bibliography '("~/org/references/bibfile.bib"))
+
 
     (use-package marginalia
       :config
@@ -349,4 +352,15 @@
 
     "l"  '(:ignore l :which-key "Latex")
     "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
+    "lc" '(citar-insert-citation :which-key "insert-citation")
+    "le" '(citar-open-entry :which-key "open-entry")
+
+    "e"  '(:ignore e :which-key "Embark")
+    "ea" '(embark-act :which-key "act")
+    "ed" '(embark-dwim :which-key "dwim")
+
+    "o"  '(:ignore c :which-key "org")
+    "oc" '(citar-insert-citation :which-key "insert-citation")
+    "oe" '(citar-open-entry :which-key "open-entry")
+    "ot" '(org-babel-tangle :which-key "tangle")
     ))
