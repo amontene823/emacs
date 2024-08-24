@@ -275,6 +275,7 @@
           :custom
           (citar-bibliography '("~/org/references/bibfile.bib"))
           (citar-open-entry-function #'citar-open-entry-in-zotero)
+          ;;(citar-open-entry-function #'citar-open-entry-in-file)
           ;;(citar-library-paths '("~/Zotero/storage*"))
           :hook
           (LaTeX-mode . citar-capf-setup)
