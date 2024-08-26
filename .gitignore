@@ -5,3 +5,10 @@ org-roam.db
 recentf
 *.png
 transient
+#*
+.org-id-locations
+bookmarks
+history
+straight/
+*test*
+url/
