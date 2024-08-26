@@ -1,6 +1,4 @@
-;; M-x all-the-icons-install-fonts  -*- lexical-binding: t; -*-
-;; M-x nerd-icons-install-fonts
-;; Install fira code retina font via the package manager
+;; -*- lexical-binding: t; -*-
 
 ;; (require 'package)
 ;; (setq package-archives '(("melpa" . "https://melpa.org/packages/")
@@ -51,10 +49,10 @@
   "Hook to disable line-number-mode"
   (display-line-numbers-mode 0))
 (dolist (hook `(org-mode-hook
-		term-mode-hook
-		shell-mode-hook
-		eshell-mode-hook
-		pdf-view-mode-hook))
+  	      term-mode-hook
+  	      shell-mode-hook
+  	      eshell-mode-hook
+  	      pdf-view-mode-hook))
   (add-hook hook #'disable-line-numbers))
 
 ;; doom
@@ -74,19 +72,6 @@
 (global-unset-key (kbd "C-/"))
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-;; (defun comment-or-uncomment-region-or-line ()
-;;   "Comments or uncomments the region or the current line if there's no active region;
-;;         jumps to the next line"
-;;   (interactive)
-;;   (let (beg end)
-;;     (if (region-active-p)
-;;         (setq beg (region-beginning) end (region-end))
-;;       (setq beg (line-beginning-position) end (line-end-position)))
-;;     (comment-or-uncomment-region beg end)
-;;     (next-line))) ;; remove this line if dont want to skip to next line after comment
-
-;; (global-set-key (kbd "C-/") 'comment-or-uncomment-region-or-line)
 
 (use-package evil
   :init
@@ -118,7 +103,6 @@
 (use-package evil-nerd-commenter
   :after evil
   :bind
-  ;; Bind your preferred key combinations here
   (("C-/" . evilnc-comment-or-uncomment-lines)))
 
 ;; modeline completion
@@ -182,21 +166,57 @@
   (define-key vertico-map (kbd "C-j") 'vertico-next)
   (define-key vertico-map (kbd "C-k") 'vertico-previous))
 
-;; (use-package vertico-directory
-;;   :after vertico
-;;   :straight nil
-;;   :load-path "straight/repos/vertico/extensions/"
-;;   ;; More convenient directory navigation commands
-;;   :bind (:map vertico-map
-;; 	      ("RET" . vertico-directory-enter)
-;; 	      ("DEL" . vertico-directory-delete-char)
-;; 	      ("M-DEL" . vertico-directory-delete-word))
-;;   ;; Tidy shadowed file names
-;;   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+(use-package vertico-directory
+  :straight nil
+  :after vertico
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
+
+(use-package corfu
+  ;; Optional customizations
+  ;; :custom
+  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  ;; (corfu-auto t)                 ;; Enable auto completion
+  ;; (corfu-separator ?\s)          ;; Orderless field separator
+  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+
+  ;; Enable Corfu only for certain modes. See also `global-corfu-modes'.
+  ;; :hook ((prog-mode . corfu-mode)
+  ;;        (shell-mode . corfu-mode)
+  ;;        (eshell-mode . corfu-mode))
+
+  ;; Recommended: Enable Corfu globally.  This is recommended since Dabbrev can
+  ;; be used globally (M-/).  See also the customization variable
+  ;; `global-corfu-modes' to exclude certain modes.
+  :bind
+  (:map corfu-map ("SPC" . corfu-insert-separator))
+  :init
+  (global-corfu-mode))
 
 (use-package emacs
   :straight (:type built-in)
   :custom
+  ;; TAB cycle if there are only few candidates
+  ;; (completion-cycle-threshold 3)
+
+  ;; Enable indentation+completion using the TAB key.
+  ;; `completion-at-point' is often bound to M-TAB.
+  (tab-always-indent 'complete)
+
+  ;; Emacs 30 and newer: Disable Ispell completion function. As an alternative,
+  ;; try `cape-dict'.
+  ;; (text-mode-ispell-word-completion nil)
+
   ;; Support opening new minibuffers from inside existing minibuffers.
   (enable-recursive-minibuffers t)
   ;; Emacs 28 and newer: Hide commands in M-x which do not work in the current
@@ -208,16 +228,16 @@
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-		    (replace-regexp-in-string
-		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-		     crm-separator)
-		    (car args))
-	    (cdr args)))
+                  (replace-regexp-in-string
+                   "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+                   crm-separator)
+                  (car args))
+          (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-	  '(read-only t cursor-intangible t face minibuffer-prompt))
+        '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
 
 (use-package orderless
@@ -232,57 +252,57 @@
 (use-package consult
   ;; Replace bindings. Lazily loaded by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
-	   ("C-c M-x" . consult-mode-command)
-	   ("C-c h" . consult-history)
-	   ("C-c k" . consult-kmacro)
-	   ("C-c m" . consult-man)
-	   ("C-c i" . consult-info)
-	   ([remap Info-search] . consult-info)
-	   ;; C-x bindings in `ctl-x-map'
-	   ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-	   ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-	   ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-	   ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-	   ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-	   ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-	   ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-	   ;; Custom M-# bindings for fast register access
-	   ("M-#" . consult-register-load)
-	   ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-	   ("C-M-#" . consult-register)
-	   ;; Other custom bindings
-	   ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-	   ;; M-g bindings in `goto-map'
-	   ("M-g e" . consult-compile-error)
-	   ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-	   ("M-g g" . consult-goto-line)             ;; orig. goto-line
-	   ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-	   ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-	   ("M-g m" . consult-mark)
-	   ("M-g k" . consult-global-mark)
-	   ("M-g i" . consult-imenu)
-	   ("M-g I" . consult-imenu-multi)
-	   ;; M-s bindings in `search-map'
-	   ("M-s d" . consult-find)                  ;; Alternative: consult-fd
-	   ("M-s c" . consult-locate)
-	 ;; ("C-f"   . consult-ripgrep)
-	   ("M-s g" . consult-grep)
-	   ("M-s G" . consult-git-grep)
-	   ("C-l" . consult-line)
-	   ("M-s L" . consult-line-multi)
-	   ("M-s k" . consult-keep-lines)
-	   ("M-s u" . consult-focus-lines)
-	   ;; Isearch integration
-	   ("M-s e" . consult-isearch-history)
-	   :map isearch-mode-map
-	   ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-	   ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-	   ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-	   ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-	   ;; Minibuffer history
-	   :map minibuffer-local-map
-	   ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-	   ("M-r" . consult-history))                ;; orig. previous-matching-history-element
+         ("C-c M-x" . consult-mode-command)
+         ("C-c h" . consult-history)
+         ("C-c k" . consult-kmacro)
+         ("C-c m" . consult-man)
+         ("C-c i" . consult-info)
+         ([remap Info-search] . consult-info)
+         ;; C-x bindings in `ctl-x-map'
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+         ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+         ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ;; M-g bindings in `goto-map'
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings in `search-map'
+         ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+         ("M-s c" . consult-locate)
+         ;; ("C-f"   . consult-ripgrep)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("C-l" . consult-line)
+         ("M-s L" . consult-line-multi)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)
+         ;; Isearch integration
+         ("M-s e" . consult-isearch-history)
+         :map isearch-mode-map
+         ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+         ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+         ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+         ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+         ;; Minibuffer history
+         :map minibuffer-local-map
+         ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+         ("M-r" . consult-history))                ;; orig. previous-matching-history-element
 
   ;; Enable automatic preview at point in the *Completions* buffer. This is
   ;; relevant when you use the default completion UI.
@@ -295,7 +315,7 @@
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
   (setq register-preview-delay 0.5
-	  register-preview-function #'consult-register-format)
+        register-preview-function #'consult-register-format)
 
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
@@ -303,7 +323,7 @@
 
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
-	  xref-show-definitions-function #'consult-xref)
+        xref-show-definitions-function #'consult-xref)
 
   ;; Configure other variables and modes in the :config section,
   ;; after lazily loading the package.
@@ -357,9 +377,9 @@
   :config
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
-		 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-		   nil
-		   (window-parameters (mode-line-format . none)))))
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
   :hook
