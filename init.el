@@ -487,8 +487,11 @@
 
 (setq org-format-latex-options '(:foreground default :background default :scale 2.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
-(use-package cdlatex)
-(add-hook 'org-mode-hook #'turn-on-org-cdlatex)
+(use-package cdlatex
+:hook (org-mode . turn-on-org-cdlatex))
+
+(use-package org-fragtog
+:hook (org-mode . org-fragtog-mode))
 
 (use-package citar
           :custom
