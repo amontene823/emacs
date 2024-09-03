@@ -559,82 +559,252 @@ Improves emacs startup time
 ** Reference Management
 #+begin_src emacs-lisp
 
-          (use-package citar
-            :custom
-            (citar-bibliography '("~/references/bibfile.bib"))
-            ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
-            (citar-open-entry-function #'citar-open-entry-in-file)
-            (citar-library-paths '("~/references/pdfs"))
-            :hook
-            (LaTeX-mode . citar-capf-setup)
-            (org-mode . citar-capf-setup))
-          (setq org-cite-global-bibliography '("~/references/bibfile.bib"))
+  (use-package citar
+    :custom
+    (citar-bibliography '("~/references/bibfile.bib"))
+    ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
+    (citar-open-entry-function #'citar-open-entry-in-file)
+    (citar-library-paths '("~/references/pdfs"))
+    :hook
+    (LaTeX-mode . citar-capf-setup)
+    (org-mode . citar-capf-setup))
+  (setq org-cite-global-bibliography '("~/references/bibfile.bib"))
 
-          (use-package citar-embark
-            :after citar embark
-            :no-require
-            :config (citar-embark-mode))
+  (use-package citar-embark
+    :after citar embark
+    :no-require
+    :config (citar-embark-mode))
 
-        (use-package citar-org-roam
-          :after (citar org-roam)
-          :config (citar-org-roam-mode))
-        (setq citar-org-roam-note-title-template "${author} - ${title}")
-        (setq org-roam-capture-templates
-              '(("d" "default" plain
-                 "%?"
-                 :target
-                 (file+head
-                  "%<%Y%m%d%H%M%S>-${slug}.org"
-                  "#+title: ${note-title}\n")
-                 :unnarrowed t)
-                ("n" "literature note" plain
-                 "%?"
-                 :target
-                 (file+head
-                  "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
-                  "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
-                 :unnarrowed t)))
-        (setq citar-org-roam-capture-template-key "n")
+  (use-package citar-org-roam
+    :after (citar org-roam)
+    :config (citar-org-roam-mode))
+  (setq citar-org-roam-note-title-template "${author} - ${title}")
+  (setq org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :target
+           (file+head
+            "%<%Y%m%d%H%M%S>-${slug}.org"
+            "#+title: ${note-title}\n")
+           :unnarrowed t)
+          ("n" "literature note" plain
+           "%?"
+           :target
+           (file+head
+            "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
+            "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
+           :unnarrowed t)))
+  (setq citar-org-roam-capture-template-key "n")
 
-    (use-package org-ref
-      :config
-      (setq org-ref-default-bibliography '("~/references/bibfile.bib")
-            org-ref-pdf-directory "~/references/pdfs/"
-            org-ref-bibliography-notes "~/references/notes/notes.org"))
-    (require 'doi-utils)
+  (use-package org-ref
+    :after (org-roam org)
+    :config
+    (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
+          org-ref-pdf-directory "~/pdfs/"))
+          ;; org-ref-bibliography-notes "~/pdfs/notes/notes.org"))
+  (require 'doi-utils)
 
-    ;; (use-package bibtex-completion
-    ;;   :after (org-roam org)
-    ;;   :custom
-    ;;   (bibtex-completion-bibliography '("~/references/bibfile.bib"))
-    ;;   (bibtex-completion-library-path '("~/reference/pdfs"))
-    ;;   (bibtex-completion-notes-path '("~/org/roam")))
-
-  (defun org-ref-pdf-to-bibtex-interactive ()
-    "Interactively choose a PDF file, extract the first DOI, add a BibTeX entry, and rename the PDF to the citation key within the WSL directory."
-    (interactive)
-    ;; Set the directory to your WSL instance path
-    (let* ((default-directory "~/references/pdfs/")
-           (pdf-file (expand-file-name (read-file-name "Select PDF: " nil nil t nil 
-                                                       (lambda (file) (string-equal "pdf" (file-name-extension file))))))
-           (dois (org-ref-extract-doi-from-pdf pdf-file))
-           (doi-utils-download-pdf nil)
-           (doi (car dois)))
-      (unless doi
-        (error "No DOI found in the selected PDF"))
-      ;; Add BibTeX entry from DOI
-      (doi-utils-add-bibtex-entry-from-doi doi)
-      ;; Get the citation key from the newly created BibTeX entry
-      (let* ((key (org-ref-bibtex-key-from-doi doi))
-             (new-filename (expand-file-name (format "%s.pdf" key) (file-name-directory pdf-file))))
-        ;; Rename the PDF file to the citation key
-        (rename-file pdf-file new-filename)
-        ;; Confirm file renaming
-        (if (file-exists-p new-filename)
-            (message "PDF successfully renamed to %s" new-filename)
-          (message "Failed to rename PDF")))))
+  (use-package bibtex-completion
+    :after (org-roam org)
+    :custom
+    (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
+    (bibtex-completion-library-path '("~/pdfs"))
+    (bibtex-completion-notes-path '("~/org/roam")))
 
 #+end_src
+
+    - Custom Python function that leverages pdf2bib library to convert a library of pdf literature to a bibfile
+        - [[https://github.com/MicheleCotrufo/pdf2bib]]
+    - Creates a bib(TeX) file and an 'unfiled' directory if they dont exist already
+    - Finds citations, adds the formatted citation to bibTeX file, renames the pdf-file to match the found citation key
+    - Moves pdf to the 'unfiled' directory if the associated citation can't be found
+
+#+begin_src python :results output
+
+  import pdf2bib
+  import os
+  import re
+  from pathlib import Path
+  import shutil
+
+  home = os.path.expanduser('~')
+  base_path = os.path.join(home, 'pdfs')
+  bibfile_path = os.path.join(base_path, 'bibfile.bib')
+
+  def extract_bibtex_key(bibtex_entry):
+      """
+      Extracts the key from a BibTeX entry string.
+
+      Parameters:
+          bibtex_entry (str): The BibTeX entry as a string.
+
+      Returns:
+          str: The extracted key.
+      """
+      match = re.search(r'@\w+{([^,]+),', bibtex_entry)
+      if match:
+          return match.group(1)
+      else:
+          raise ValueError("No valid BibTeX key found")
+
+  def pdf_doi_to_bibtex(pdf_files_directory_path, bibfile_path):
+      """
+      ## Description
+        - Custom Python function that leverages pdf2bib library to convert a directory of pdf literature to a bibfile
+        - Only works on literature with an associated doi that can be found by pdf2bib
+        - Find citations, and adds the formatted citation to a .bib file
+        - Moves literature to the 'unfiled' directory if citation can't be found
+        - Creates a bibfile and an unfiled directory if they dont exist already
+      ## Parameters:
+        - pdf_files_directory_path: the directory where pdf files are stored
+        - bibfile_path: the path to the bibfile
+      """
+      pdf2bib.config.set('verbose', False)
+      pdfs = [os.path.join(pdf_files_directory_path, f) for f in os.listdir(pdf_files_directory_path) if 'pdf' in f]
+      print(f'There are {len(pdfs)} pdf files in this directory')
+      with open(bibfile_path, 'a+') as bibfile:
+          bibfile.seek(0)
+          r = bibfile.read()
+          for f in pdfs:
+              citekey = Path(f).stem
+              if citekey in r:
+                  print(f, 'Already added to bibfile... skipping')
+              else:
+                  result = pdf2bib.pdf2bib(f)
+                  if result['identifier'] != None:
+                      bibfile.seek(0, 2)
+                      print(f, 'Adding to bibfile...')
+                      bibfile.write(result['bibtex'] + '\n\n')
+                      citekey = extract_bibtex_key(result['bibtex'])
+                      print('key:', citekey)
+                      os.rename(f, os.path.join(pdf_files_directory_path, citekey + '.pdf'))
+                  else:
+                      print('Could not find citation for:', f)
+                      print('Moving pdf to unfiled directory...')
+                      unfiled_path = os.path.join(pdf_files_directory_path, 'unfiled')
+                      if not os.path.exists(unfiled_path):
+                          os.makedirs(unfiled_path)
+                          shutil.move(f, os.path.join(unfiled_path, citekey + '.pdf'))
+
+  pdf_doi_to_bibtex(base_path, bibfile_path)
+
+
+#+end_src
+
+#+RESULTS:
+#+begin_example
+There are 110 pdf files in this directory
+/Users/angelo/pdfs/huffer1978astigmatically.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/das2011electronic.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/david2013understanding.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/meyer1982the.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/gouy1910sur.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/mcmillan1984a.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/cummings2002demonstration.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/fumagalli2018anomalously.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/franken1961generation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/gan2005orientation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/dreier2019surfacespecific.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhang2020electromechanics.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/yoshikawa2013czochralski.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/boretti2018outlook.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/souza2011effect.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhang2020modelling.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhang2011communication.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/bratko2007effect.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/guo2008nanostructured.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/vyatkin2011thermally.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/gragson1998investigations.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/chen2018plasmonically.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/ohto2018structure.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/cha2020interference.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/lage2004ramanspectroscopic.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/1979potassium.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/puncken2010intrinsic.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/ohno2022comparison.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/eaves2005hydrogen.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/mironov2019thermooptical.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/yang2018mechanism.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/koechner1970thermal.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/helmholtz1879studien.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/daniel2020analytical.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/2001infrared.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/volpi2019bridgman.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/casiraghi2007raman.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/schaefer2017surfacespecific.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/glebova2008role.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/auer2007hydrogen.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/kang2001hydrothermal.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/helmholtz1853ueber.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhong2016nonradiative.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/lee2017synergistically.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/chapman1913li.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/liu2017wurtzite.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/laage2017water.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/pisana2007breakdown.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/markel2016introduction.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/snetkov2018features.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/wen2016unveiling.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/sun2018orientational.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/song1993selftrapped.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhou2018electrostatic.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/thakre2019pyroelectric.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/shimamura2001crystal.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/dutta2019reorientation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/jalali2017characterization.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/dreier2018saturation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/willamowski1996&lt;title&gt;calorimetric.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/vojna2020verdet.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/roth2009directly.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/stevens2017commercializing.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/tong2017experimentally.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/zhang2020water.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/bjorneholm2016water.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/chenghai2007thermal.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/winiski1986an.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/lipfert2014understanding.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/kristensen2001ultravioletlightinduced.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/lumeau2016a.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/sun2015surface.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/von2013dynamics.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/karimov2021growth.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/mukhin2005influence.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/nihonyanagi2009direct.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/gonella2021water.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/balci2015grapheneenabled.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/huang2021tracking.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/nair2008fine.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/escola2019investigation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/efimov2002measurement.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/pues2020temperature.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/you2004synthesis.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/salman2019electrooxidation.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/vojna2019verdet.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/dodia2019structure.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/ohno2019subnucleosomal.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/vasyliev2012uvvisible.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/peijzel2005a.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/das2008monitoring.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/mironov2019euf2based.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/malyk2013vibrational.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/amdursky2019exploring.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/largeau1998synthesis.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/chynoweth1956dynamic.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/henderson2002knowing.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/kogelnik1966laser.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/froehlicher2015raman.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/novoselov2004electric.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/champagne2013theoretical.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/basko2009electronelectron.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/cao2013synthesis.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/weber1978magnetooptical.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/dhar2017vibrational.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/ohno2017secondorder.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/ferrari2006raman.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/walter2010solar.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/partoens2006from.pdf Already added to bibfile... skipping
+/Users/angelo/pdfs/backus2020probing.pdf Already added to bibfile... skipping
+#+end_example
 
 ** Other Packages
 #+begin_src emacs-lisp

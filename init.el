@@ -494,79 +494,56 @@
 :hook (org-mode . org-fragtog-mode))
 
 (use-package citar
-          :custom
-          (citar-bibliography '("~/references/bibfile.bib"))
-          ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
-          (citar-open-entry-function #'citar-open-entry-in-file)
-          (citar-library-paths '("~/references/pdfs"))
-          :hook
-          (LaTeX-mode . citar-capf-setup)
-          (org-mode . citar-capf-setup))
-        (setq org-cite-global-bibliography '("~/references/bibfile.bib"))
+  :custom
+  (citar-bibliography '("~/references/bibfile.bib"))
+  ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
+  (citar-open-entry-function #'citar-open-entry-in-file)
+  (citar-library-paths '("~/references/pdfs"))
+  :hook
+  (LaTeX-mode . citar-capf-setup)
+  (org-mode . citar-capf-setup))
+(setq org-cite-global-bibliography '("~/references/bibfile.bib"))
 
-        (use-package citar-embark
-          :after citar embark
-          :no-require
-          :config (citar-embark-mode))
+(use-package citar-embark
+  :after citar embark
+  :no-require
+  :config (citar-embark-mode))
 
-      (use-package citar-org-roam
-        :after (citar org-roam)
-        :config (citar-org-roam-mode))
-      (setq citar-org-roam-note-title-template "${author} - ${title}")
-      (setq org-roam-capture-templates
-            '(("d" "default" plain
-               "%?"
-               :target
-               (file+head
-                "%<%Y%m%d%H%M%S>-${slug}.org"
-                "#+title: ${note-title}\n")
-               :unnarrowed t)
-              ("n" "literature note" plain
-               "%?"
-               :target
-               (file+head
-                "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
-                "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
-               :unnarrowed t)))
-      (setq citar-org-roam-capture-template-key "n")
+(use-package citar-org-roam
+  :after (citar org-roam)
+  :config (citar-org-roam-mode))
+(setq citar-org-roam-note-title-template "${author} - ${title}")
+(setq org-roam-capture-templates
+      '(("d" "default" plain
+         "%?"
+         :target
+         (file+head
+          "%<%Y%m%d%H%M%S>-${slug}.org"
+          "#+title: ${note-title}\n")
+         :unnarrowed t)
+        ("n" "literature note" plain
+         "%?"
+         :target
+         (file+head
+          "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
+          "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
+         :unnarrowed t)))
+(setq citar-org-roam-capture-template-key "n")
 
-  (use-package org-ref
-    :config
-    (setq org-ref-default-bibliography '("~/references/bibfile.bib")
-          org-ref-pdf-directory "~/references/pdfs/"
-          org-ref-bibliography-notes "~/references/notes/notes.org"))
-  (require 'doi-utils)
+(use-package org-ref
+  :after (org-roam org)
+  :config
+  (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
+        org-ref-pdf-directory "~/pdfs/"))
+        ;; org-ref-bibliography-notes "~/pdfs/notes/notes.org"))
+(require 'doi-utils)
 
-  ;; (use-package bibtex-completion
-  ;;   :after (org-roam org)
-  ;;   :custom
-  ;;   (bibtex-completion-bibliography '("~/references/bibfile.bib"))
-  ;;   (bibtex-completion-library-path '("~/reference/pdfs"))
-  ;;   (bibtex-completion-notes-path '("~/org/roam")))
-
-(defun org-ref-pdf-to-bibtex-interactive ()
-  "Interactively choose a PDF file, extract the first DOI, add a BibTeX entry, and rename the PDF to the citation key within the WSL directory."
-  (interactive)
-  ;; Set the directory to your WSL instance path
-  (let* ((default-directory "~/references/pdfs/")
-         (pdf-file (expand-file-name (read-file-name "Select PDF: " nil nil t nil 
-                                                     (lambda (file) (string-equal "pdf" (file-name-extension file))))))
-         (dois (org-ref-extract-doi-from-pdf pdf-file))
-         (doi-utils-download-pdf nil)
-         (doi (car dois)))
-    (unless doi
-      (error "No DOI found in the selected PDF"))
-    ;; Add BibTeX entry from DOI
-    (doi-utils-add-bibtex-entry-from-doi doi)
-    ;; Get the citation key from the newly created BibTeX entry
-    (let* ((key (org-ref-bibtex-key-from-doi doi))
-           (new-filename (expand-file-name (format "%s.pdf" key) (file-name-directory pdf-file))))
-      ;; Rename the PDF file to the citation key
-      (rename-file pdf-file new-filename)
-      ;; Confirm file renaming
-      (if (file-exists-p new-filename)
-          (message "PDF successfully renamed to %s" new-filename)
-        (message "Failed to rename PDF")))))
+(use-package bibtex-completion
+  :after (org-roam org)
+  :custom
+  (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
+  (bibtex-completion-library-path '("~/pdfs"))
+  (bibtex-completion-notes-path '("~/org/roam")))
 
 (use-package which-key
      :diminish which-key-mode
