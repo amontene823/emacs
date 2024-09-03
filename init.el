@@ -495,14 +495,14 @@
 
 (use-package citar
   :custom
-  (citar-bibliography '("~/references/bibfile.bib"))
+  (citar-bibliography '("~/pdfs/bibfile.bib"))
   ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
   (citar-open-entry-function #'citar-open-entry-in-file)
-  (citar-library-paths '("~/references/pdfs"))
+  (citar-library-paths '("~/pdfs"))
   :hook
   (LaTeX-mode . citar-capf-setup)
   (org-mode . citar-capf-setup))
-(setq org-cite-global-bibliography '("~/references/bibfile.bib"))
+(setq org-cite-global-bibliography '("~/pdfs/bibfile.bib"))
 
 (use-package citar-embark
   :after citar embark
