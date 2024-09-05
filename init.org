@@ -593,9 +593,25 @@ Improves emacs startup time
                              (org-noter--pretty-print-location location))))))))
     (with-eval-after-load 'pdf-annot
       (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+
+ (use-package org-roam-ui
+  :straight
+    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+    :after org-roam
+;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+;;         a hookable mode anymore, you're advised to pick something yourself
+;;         if you don't care about startup time, use
+;;  :hook (after-init . org-roam-ui-mode)
+    :config
+    (setq org-roam-ui-sync-theme t
+          org-roam-ui-follow t
+          org-roam-ui-update-on-save t
+          org-roam-ui-open-on-start t))
+ 
 #+end_src
 
-#+end_src
+#+RESULTS:
+: t
 
 ** Reference Management
 #+begin_src emacs-lisp
@@ -894,6 +910,24 @@ There are 110 pdf files in this directory
 
 #+end_src
 
+
+** Python
+*** Make sure you have Emacs with treesitter support:
+    M-: (treesit-available-p) RET should return t
+
+    Make sure you have installed python treesitter grammar
+    Windows: download libtree-sitter-python.dll from https://corwin.bru.st/emacs-tree-sitter/ into ~/.emacs.d/tree-sitter/
+    GNU/Linux: run M-x treesit-install-language-grammar RET type python RET and do a couple of additional y for default options. You will need to have git and C/Cpp compiler available as it would download repo and build grammar library.
+
+#+begin_src python
+
+  (use-package micromamba)
+  
+  (setq major-mode-remap-alist
+   '((python-mode . python-ts-mode)))
+
+#+end_src
+
 **  Spacemacs
 #+begin_src emacs-lisp
 
@@ -936,14 +970,15 @@ There are 110 pdf files in this directory
       "hk" '(describe-key :which-key "Describe Key")
 
       "f"  '(:ignore f :which-key "Files")
-      "fr" '(consult-recent-file :while-key "Recent Files")
-      "ff" '(find-file :while-key "Find File")
+      "fr" '(consult-recent-file :which-key "Recent Files")
+      "ff" '(find-file :which-key "Find File")
 
       "l"  '(:ignore l :which-key "Latex")
       "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
 
       "o"  '(:ignore o :which-key "org")
-      "ot" '(org-babel-tangle :which-key "tangle")
+      "ot" '(org-babel-tangle :which-key "Tangle")
+      "of" '(org-roam-node-find :which-key "Find Node")
 
       "c"  '(:ignore c :which-key "Citations")
       "ci" '(citar-insert-citation :which-key "insert-citation")
