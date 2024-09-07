@@ -75,11 +75,12 @@
 
 (use-package evil
   :init
+  ;; these settings were important for correcting indentation in
+  ;; org mode src blocks
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  ;;(setq evil-want-C-u-scroll t)
-  ;;(setq evil-want-C-i-jump nil)
-  ;;:hook (evil-mode . am/evil-hook)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
   ;;(define-key evil-normal-state-map (kbd "C-.") nil)
@@ -95,15 +96,24 @@
 
   (evil-set-undo-system 'undo-redo)) ;; undo-redo functionality
 
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+ (use-package evil-collection
+   :after evil
+   :config
+   (evil-collection-init))
 
-(use-package evil-nerd-commenter
-  :after evil
-  :bind
-  (("C-/" . evilnc-comment-or-uncomment-lines)))
+ (use-package evil-nerd-commenter
+   :after evil
+   :bind
+   (("C-/" . evilnc-comment-or-uncomment-lines)))
+
+(dolist (hook '(text-mode-hook))
+  (add-hook hook (lambda () (flyspell-mode 1))))
+
+(when (eq system-type 'darwin) ;; Check if the OS is macOS
+  (eval-after-load "flyspell"
+    '(progn
+       (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+       (define-key flyspell-mouse-map [mouse-3] #'undefined))))
 
 ;; modeline completion
 ;; (use-package ivy
@@ -239,6 +249,17 @@
   (setq minibuffer-prompt-properties
         '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+
+;; makes scrolling good in emacs-mac
+(use-package ultra-scroll-mac
+  :straight (ultra-scroll-mac :type git :host github :repo "jdtsmith/ultra-scroll-mac")
+  :if (eq window-system 'mac)
+  :init
+  (setq scroll-conservatively 101 ; important!
+        scroll-margin 0) 
+  :config
+  ;; Enable the ultra-scroll mode
+  (ultra-scroll-mac-mode 1))
 
 (use-package orderless
   :custom
@@ -389,7 +410,7 @@
    ;;:defer t
    :hook ((LaTeX-mode . LaTeX-preview-setup)
           (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
-          ;;(LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
+          (LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
           (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
    :config
    (setq TeX-auto-save t)
@@ -403,218 +424,237 @@
    TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
 ;; to use pdfview with auctex
 
- (use-package company-auctex
-   :after (company auctex)
-   :config
-   (company-auctex-init))
+ ;; (use-package company-auctex
+   ;; :after (company auctex)
+   ;; :config
+   ;; (company-auctex-init))
 
  (use-package latex-preview-pane
    ;;:after auctex
    :hook (LaTeX-mode . latex-preview-pane-mode))
 
 (defun am/org-font-setup ()
-    ;; Replace list hyphen with dot
-    (font-lock-add-keywords 'org-mode
-                            '(("^ *\\([-]\\) "
-                               (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-    ;; Set faces for heading levels
-    (dolist (face '((org-level-1 . 1.4)
-                    (org-level-2 . 1.2)
-                    (org-level-3 . 1.1)
-                    (org-level-4 . 1.0)
-                    (org-level-5 . 1.0)
-                    (org-level-6 . 1.0)
-                    (org-level-7 . 1.0)
-                    (org-level-8 . 1.0)))
-      (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
-    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.2)
+                  (org-level-3 . 1.1)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.0)
+                  (org-level-6 . 1.0)
+                  (org-level-7 . 1.0)
+                  (org-level-8 . 1.0)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-  (defun am/org-mode-setup ()
-    (org-indent-mode 1)
-    (variable-pitch-mode 1)
-    (visual-line-mode 1))
+(defun am/org-mode-setup ()
+  (org-indent-mode 1)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
 
-  (use-package org
-    :straight (:type built-in) 
-    :hook
-    (org-mode . am/org-mode-setup)
-    :config
-    (setq org-ellipsis " ▾"
-          org-hide-emphasis-markers nil
-          org-agenda-files
-          '("~/org"))
-    (auto-revert-mode 1)
-    (am/org-font-setup))
+(use-package org
+  :straight (:type built-in) 
+  :hook
+  (org-mode . am/org-mode-setup)
+  ;; (org-src-mode-hook . company-mode)
 
-  (use-package org-bullets
-    :after org
-    :hook (org-mode . org-bullets-mode))
+  :config
+  (setq org-ellipsis " ▾"
+        org-hide-emphasis-markers nil
+        org-agenda-files
+        '("~/org"))
+  (auto-revert-mode 1)
+  (am/org-font-setup))
 
-  (use-package org-roam
-    :init
-    (setq org-roam-vs-ack t)
-    :custom
-    (org-roam-directory (file-truename "~/org/roam/"))
-    (org-roam-db-autosync-mode)
-    (org-roam-completion-everywhere t)
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           :map org-mode-map
-           ("C-M-i" . completion-at-point))
-    :config
-    (org-roam-setup))
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode))
 
-  ;; Org babel languages
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (python . t)
-     (shell . t)))
-  (setq org-confirm-babel-evaluate nil)
+(use-package org-roam
+  :init
+  (setq org-roam-vs-ack t)
+  :custom
+  (org-roam-directory (file-truename "~/org/roam/"))
+  (org-roam-db-autosync-mode)
+  (org-roam-completion-everywhere t)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point))
+  :config
+  (org-roam-setup))
 
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+;; Org babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (python . t)
+   (shell . t)))
+(setq org-confirm-babel-evaluate nil)
 
-  (setq org-format-latex-options '(:foreground default :background default :scale 2.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-  (use-package cdlatex
-    :hook (org-mode . turn-on-org-cdlatex))
+(setq org-format-latex-options '(:foreground default :background default :scale 2.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
-  (use-package org-fragtog
-    :hook (org-mode . org-fragtog-mode))
+(use-package cdlatex
+  :hook (org-mode . turn-on-org-cdlatex))
 
-  (use-package org-noter)
-    ;; :config
-    ;; Your org-noter config ........
-    ;; (require 'org-noter-pdftools))
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
 
-  (use-package org-pdftools
-    :hook (org-mode . org-pdftools-setup-link))
+(use-package org-noter
+:after org-noter-pdftools)
 
-  (use-package org-noter-pdftools
-    :after org-noter
-    :config
-    ;; Add a function to ensure precise note is inserted
-    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-      (interactive "P")
-      (org-noter--with-valid-session
-       (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                     (not org-noter-insert-note-no-questions)
-                                                   org-noter-insert-note-no-questions))
-             (org-pdftools-use-isearch-link t)
-             (org-pdftools-use-freepointer-annot t))
-         (org-noter-insert-note (org-noter--get-precise-info)))))
+(use-package org-pdftools
+  :hook (org-mode . org-pdftools-setup-link))
 
-    ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-    (defun org-noter-set-start-location (&optional arg)
-      "When opening a session with this document, go to the current location.
+(use-package org-noter-pdftools
+  :after org-noter
+  :config
+  ;; Add a function to ensure precise note is inserted
+  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+    (interactive "P")
+    (org-noter--with-valid-session
+     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                   (not org-noter-insert-note-no-questions)
+                                                 org-noter-insert-note-no-questions))
+           (org-pdftools-use-isearch-link t)
+           (org-pdftools-use-freepointer-annot t))
+       (org-noter-insert-note (org-noter--get-precise-info)))))
+
+  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+  (defun org-noter-set-start-location (&optional arg)
+    "When opening a session with this document, go to the current location.
   With a prefix ARG, remove start location."
-      (interactive "P")
-      (org-noter--with-valid-session
-       (let ((inhibit-read-only t)
-             (ast (org-noter--parse-root))
-             (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-         (with-current-buffer (org-noter--session-notes-buffer session)
-           (org-with-wide-buffer
-            (goto-char (org-element-property :begin ast))
-            (if arg
-                (org-entry-delete nil org-noter-property-note-location)
-              (org-entry-put nil org-noter-property-note-location
-                             (org-noter--pretty-print-location location))))))))
-    (with-eval-after-load 'pdf-annot
-      (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+    (interactive "P")
+    (org-noter--with-valid-session
+     (let ((inhibit-read-only t)
+           (ast (org-noter--parse-root))
+           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+       (with-current-buffer (org-noter--session-notes-buffer session)
+         (org-with-wide-buffer
+          (goto-char (org-element-property :begin ast))
+          (if arg
+              (org-entry-delete nil org-noter-property-note-location)
+            (org-entry-put nil org-noter-property-note-location
+                           (org-noter--pretty-print-location location))))))))
+  (with-eval-after-load 'pdf-annot
+    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 
- (use-package org-roam-ui
+(use-package org-roam-ui
   :straight
-    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-    :after org-roam
-;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-;;         a hookable mode anymore, you're advised to pick something yourself
-;;         if you don't care about startup time, use
-;;  :hook (after-init . org-roam-ui-mode)
-    :config
-    (setq org-roam-ui-sync-theme t
-          org-roam-ui-follow t
-          org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start t))
+  (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+  :after org-roam
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
 
 (use-package citar
-  :custom
-  (citar-bibliography '("~/pdfs/bibfile.bib"))
-  ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
-  (citar-open-entry-function #'citar-open-entry-in-file)
-  (citar-library-paths '("~/pdfs" "~/pdfs/books"))
-  :hook
-  (LaTeX-mode . citar-capf-setup)
-  (org-mode . citar-capf-setup))
-(setq org-cite-global-bibliography '("~/pdfs/bibfile.bib"))
+    :custom
+    (citar-bibliography '("~/pdfs/bibfile.bib"))
+    ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
+    (citar-open-entry-function #'citar-open-entry-in-file)
+    (citar-library-paths '("~/pdfs" "~/pdfs/books"))
+    :hook
+    (LaTeX-mode . citar-capf-setup)
+    (org-mode . citar-capf-setup))
+  (setq org-cite-global-bibliography '("~/pdfs/bibfile.bib"))
 
-(use-package citar-embark
-  :after citar embark
-  :no-require
-  :config (citar-embark-mode))
+  (use-package citar-embark
+    :after citar embark
+    :no-require
+    :config (citar-embark-mode))
 
-(use-package citar-org-roam
-  :after (citar org-roam)
-  :config (citar-org-roam-mode))
-(setq citar-org-roam-note-title-template "${author} - ${title}")
-(setq org-roam-capture-templates
-      '(("d" "default" plain
-         "%?"
-         :target
-         (file+head
-          "%<%Y%m%d%H%M%S>-${slug}.org"
-          "#+title: ${note-title}\n")
-         :unnarrowed t)
-        ("n" "literature note" plain
-         "%?"
-         :target
-         (file+head
-          "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
-          "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
-         :unnarrowed t)))
-(setq citar-org-roam-capture-template-key "n")
+  (use-package citar-org-roam
+    :after (citar org-roam)
+    :config (citar-org-roam-mode))
+  (setq citar-org-roam-note-title-template "${author} - ${title}")
+  (setq org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :target
+           (file+head
+            "%<%Y%m%d%H%M%S>-${slug}.org"
+            "#+title: ${note-title}\n")
+           :unnarrowed t)
+          ("n" "literature note" plain
+           "%?"
+           :target
+           (file+head
+            "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
+            "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
+           :unnarrowed t)))
+  (setq citar-org-roam-capture-template-key "n")
 
-(use-package org-ref
-  :after (org-roam org)
-  :config
-  (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
-        org-ref-pdf-directory "~/pdfs/"))
-        ;; org-ref-bibliography-notes "~/pdfs/notes/notes.org"))
-(require 'doi-utils)
+  (use-package org-ref
+    :after (org-roam org)
+    :config
+    (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
+          org-ref-pdf-directory "~/pdfs/"))
+  (require 'doi-utils)
 
-(use-package bibtex-completion
-  :after (org-roam org)
-  :custom
-  (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
-  (bibtex-completion-library-path '("~/pdfs"))
-  (bibtex-completion-notes-path '("~/org/roam")))
+  (use-package bibtex-completion
+    :after (org-roam org)
+    :custom
+    (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
+    (bibtex-completion-library-path '("~/pdfs"))
+    (bibtex-completion-notes-path '("~/org/roam")))
+
+  ;; Sci-hub
+(defun sci-hub-pdf-url (doi)
+  "Get url to the pdf from SCI-HUB"
+  (setq *doi-utils-pdf-url* (concat "https://sci-hub.se/" doi) ;captcha
+        *doi-utils-waiting* t
+        )
+  ;; try to find PDF url (if it exists)
+  (url-retrieve (concat "https://sci-hub.se/" doi)
+            (lambda (status)
+              (goto-char (point-min))
+              (while (search-forward-regexp "\\(https://\\|//sci-hub.se/downloads\\).+download=true'" nil t)
+                (let ((foundurl (match-string 0)))
+                  (message foundurl)
+                  (if (string-match "https:" foundurl)
+                  (setq *doi-utils-pdf-url* foundurl)
+                (setq *doi-utils-pdf-url* (concat "https:" foundurl))))
+                (setq *doi-utils-waiting* nil))))
+  (while *doi-utils-waiting* (sleep-for 0.1))
+  *doi-utils-pdf-url*)
 
 (use-package which-key
-     :diminish which-key-mode
-     :config
-     (setq which-key-idle-delay 0)
-     (which-key-mode))
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0)
+  (which-key-mode))
 
-   (use-package helpful
-     ;;:custom
-     ;;(counsel-describe-function-function #'helpful-callable)
-     ;;(counsel-describe-variable-function #'helpful-variable)
-     :bind
-     ;;([remap describe-function] . counsel-describe-function)
-     ([remap describe-command] . helpful-command)
-     ;;([remap describe-variable] . counsel-describe-variable)
-     ([remap describe-key] . helpful-key))
+(use-package helpful
+  ;;:custom
+  ;;(counsel-describe-function-function #'helpful-callable)
+  ;;(counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ;;([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ;;([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
 (use-package magit)
 (use-package transient) ;; for magit
@@ -636,10 +676,50 @@
   (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
   (org-download-enable))  
 
+(use-package org-mac-image-paste
+  :straight (org-mac-image-paste :type git :host github :repo "jdtsmith/org-mac-image-paste")
+  :if (eq window-system 'mac)
+  :config
+  (org-mac-image-paste-mode 1)
+  (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
+  (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc. 
+  (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
+  ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
+
+  ;; Optional: You can bind the paste image function to a key if desired
+  ;; (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
+  )
+;; changes behavior of evil-mode paste to org-yank (paste) in org mode, otherwise image isnt pasted.
+(defun my/org-mode-evil-paste ()
+  "Replace evil-mode `p` with `org-yank` in Org mode."
+  (when (derived-mode-p 'org-mode)
+    (define-key evil-normal-state-local-map (kbd "p") 'org-yank)
+    (define-key evil-visual-state-local-map (kbd "p") 'org-yank)))
+
+(add-hook 'org-mode-hook 'my/org-mode-evil-paste)
+
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist
   :init
   (savehist-mode))
+
+(use-package micromamba
+  :config
+  (micromamba-activate "general"))
+
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
+(add-hook 'python-ts-mode-hook #'run-python)
+
+(setq python-indent-offset 2)
+(setq org-edit-src-content-indentation 2)
+(setq org-src-tab-acts-natively t)
+(setq evil-auto-indent t)
 
 (use-package general
   :config
@@ -689,6 +769,9 @@
     "o"  '(:ignore o :which-key "org")
     "ot" '(org-babel-tangle :which-key "Tangle")
     "of" '(org-roam-node-find :which-key "Find Node")
+    "od" '(org-display-inline-images :which-key "Display Images")
+    "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
+    "oe" '(org-edit-special :which-key "org Edit Special")
 
     "c"  '(:ignore c :which-key "Citations")
     "ci" '(citar-insert-citation :which-key "insert-citation")

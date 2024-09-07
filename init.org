@@ -12,6 +12,7 @@ Improves emacs startup time
 - =M-x all-the-icons-install-fonts=
 - =M-x nerd-icons-install-fonts=
 - Install Fira Code retins font via the package manager
+- Install 'ispell' via the package manager for Flyspell
 
 ** Package management
 *** use-package
@@ -113,11 +114,12 @@ Improves emacs startup time
 
   (use-package evil
     :init
+    ;; these settings were important for correcting indentation in
+    ;; org mode src blocks
     (setq evil-want-integration t)
     (setq evil-want-keybinding nil)
-    ;;(setq evil-want-C-u-scroll t)
-    ;;(setq evil-want-C-i-jump nil)
-    ;;:hook (evil-mode . am/evil-hook)
+    (setq evil-want-C-u-scroll t)
+    (setq evil-want-C-i-jump nil)
     :config
     (evil-mode 1)
     ;;(define-key evil-normal-state-map (kbd "C-.") nil)
@@ -133,19 +135,32 @@ Improves emacs startup time
 
     (evil-set-undo-system 'undo-redo)) ;; undo-redo functionality
 
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
+   (use-package evil-collection
+     :after evil
+     :config
+     (evil-collection-init))
 
-  (use-package evil-nerd-commenter
-    :after evil
-    :bind
-    (("C-/" . evilnc-comment-or-uncomment-lines)))
+   (use-package evil-nerd-commenter
+     :after evil
+     :bind
+     (("C-/" . evilnc-comment-or-uncomment-lines)))
 
 #+end_src
 
 * Packages
+** FlySpell
+
+#+begin_src emacs-lisp
+  (dolist (hook '(text-mode-hook))
+    (add-hook hook (lambda () (flyspell-mode 1))))
+
+  (when (eq system-type 'darwin) ;; Check if the OS is macOS
+    (eval-after-load "flyspell"
+      '(progn
+         (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
+         (define-key flyspell-mouse-map [mouse-3] #'undefined))))
+
+#+end_src
 ** Ivy, counsel
 #+begin_src emacs-lisp
 
@@ -288,6 +303,17 @@ Improves emacs startup time
     (setq minibuffer-prompt-properties
           '(read-only t cursor-intangible t face minibuffer-prompt))
     (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode))
+
+  ;; makes scrolling good in emacs-mac
+  (use-package ultra-scroll-mac
+    :straight (ultra-scroll-mac :type git :host github :repo "jdtsmith/ultra-scroll-mac")
+    :if (eq window-system 'mac)
+    :init
+    (setq scroll-conservatively 101 ; important!
+          scroll-margin 0) 
+    :config
+    ;; Enable the ultra-scroll mode
+    (ultra-scroll-mac-mode 1))
 
   (use-package orderless
     :custom
@@ -440,32 +466,32 @@ Improves emacs startup time
 
 #+begin_src emacs-lisp
 
-     (use-package auctex
-       ;;:defer t
-       :hook ((LaTeX-mode . LaTeX-preview-setup)
-              (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
-              ;;(LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
-              (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
-       :config
-       (setq TeX-auto-save t)
-       (setq TeX-parse-self t)
-       (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
-       (setq TeX-PDF-mode t))
+   (use-package auctex
+     ;;:defer t
+     :hook ((LaTeX-mode . LaTeX-preview-setup)
+            (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
+            (LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
+            (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
+     :config
+     (setq TeX-auto-save t)
+     (setq TeX-parse-self t)
+     (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
+     (setq TeX-PDF-mode t))
 
-    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-       TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-       LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
-       TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
-    ;; to use pdfview with auctex
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+     TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+     LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
+     TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
+  ;; to use pdfview with auctex
 
-     (use-package company-auctex
-       :after (company auctex)
-       :config
-       (company-auctex-init))
+   ;; (use-package company-auctex
+     ;; :after (company auctex)
+     ;; :config
+     ;; (company-auctex-init))
 
-     (use-package latex-preview-pane
-       ;;:after auctex
-       :hook (LaTeX-mode . latex-preview-pane-mode))
+   (use-package latex-preview-pane
+     ;;:after auctex
+     :hook (LaTeX-mode . latex-preview-pane-mode))
 
 #+end_src
 
@@ -505,6 +531,8 @@ Improves emacs startup time
     :straight (:type built-in) 
     :hook
     (org-mode . am/org-mode-setup)
+    ;; (org-src-mode-hook . company-mode)
+  
     :config
     (setq org-ellipsis " ▾"
           org-hide-emphasis-markers nil
@@ -553,10 +581,8 @@ Improves emacs startup time
   (use-package org-fragtog
     :hook (org-mode . org-fragtog-mode))
 
-  (use-package org-noter)
-    ;; :config
-    ;; Your org-noter config ........
-    ;; (require 'org-noter-pdftools))
+  (use-package org-noter
+  :after org-noter-pdftools)
 
   (use-package org-pdftools
     :hook (org-mode . org-pdftools-setup-link))
@@ -578,7 +604,7 @@ Improves emacs startup time
     ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
     (defun org-noter-set-start-location (&optional arg)
       "When opening a session with this document, go to the current location.
-  With a prefix ARG, remove start location."
+    With a prefix ARG, remove start location."
       (interactive "P")
       (org-noter--with-valid-session
        (let ((inhibit-read-only t)
@@ -594,24 +620,21 @@ Improves emacs startup time
     (with-eval-after-load 'pdf-annot
       (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 
- (use-package org-roam-ui
-  :straight
+  (use-package org-roam-ui
+    :straight
     (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
     :after org-roam
-;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-;;         a hookable mode anymore, you're advised to pick something yourself
-;;         if you don't care about startup time, use
-;;  :hook (after-init . org-roam-ui-mode)
+    ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+    ;;         a hookable mode anymore, you're advised to pick something yourself
+    ;;         if you don't care about startup time, use
+    ;;  :hook (after-init . org-roam-ui-mode)
     :config
     (setq org-roam-ui-sync-theme t
           org-roam-ui-follow t
           org-roam-ui-update-on-save t
           org-roam-ui-open-on-start t))
- 
-#+end_src
 
-#+RESULTS:
-: t
+#+end_src
 
 ** Reference Management
 #+begin_src emacs-lisp
@@ -658,7 +681,6 @@ Improves emacs startup time
     :config
     (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
           org-ref-pdf-directory "~/pdfs/"))
-          ;; org-ref-bibliography-notes "~/pdfs/notes/notes.org"))
   (require 'doi-utils)
 
   (use-package bibtex-completion
@@ -667,6 +689,26 @@ Improves emacs startup time
     (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
     (bibtex-completion-library-path '("~/pdfs"))
     (bibtex-completion-notes-path '("~/org/roam")))
+
+  ;; Sci-hub
+(defun sci-hub-pdf-url (doi)
+  "Get url to the pdf from SCI-HUB"
+  (setq *doi-utils-pdf-url* (concat "https://sci-hub.se/" doi) ;captcha
+        *doi-utils-waiting* t
+        )
+  ;; try to find PDF url (if it exists)
+  (url-retrieve (concat "https://sci-hub.se/" doi)
+            (lambda (status)
+              (goto-char (point-min))
+              (while (search-forward-regexp "\\(https://\\|//sci-hub.se/downloads\\).+download=true'" nil t)
+                (let ((foundurl (match-string 0)))
+                  (message foundurl)
+                  (if (string-match "https:" foundurl)
+                  (setq *doi-utils-pdf-url* foundurl)
+                (setq *doi-utils-pdf-url* (concat "https:" foundurl))))
+                (setq *doi-utils-waiting* nil))))
+  (while *doi-utils-waiting* (sleep-for 0.1))
+  *doi-utils-pdf-url*)
 
 #+end_src
 
@@ -866,21 +908,21 @@ There are 110 pdf files in this directory
 ** Other Packages
 #+begin_src emacs-lisp
 
-     (use-package which-key
-       :diminish which-key-mode
-       :config
-       (setq which-key-idle-delay 0)
-       (which-key-mode))
+  (use-package which-key
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0)
+    (which-key-mode))
 
-     (use-package helpful
-       ;;:custom
-       ;;(counsel-describe-function-function #'helpful-callable)
-       ;;(counsel-describe-variable-function #'helpful-variable)
-       :bind
-       ;;([remap describe-function] . counsel-describe-function)
-       ([remap describe-command] . helpful-command)
-       ;;([remap describe-variable] . counsel-describe-variable)
-       ([remap describe-key] . helpful-key))
+  (use-package helpful
+    ;;:custom
+    ;;(counsel-describe-function-function #'helpful-callable)
+    ;;(counsel-describe-variable-function #'helpful-variable)
+    :bind
+    ;;([remap describe-function] . counsel-describe-function)
+    ([remap describe-command] . helpful-command)
+    ;;([remap describe-variable] . counsel-describe-variable)
+    ([remap describe-key] . helpful-key))
 
   (use-package magit)
   (use-package transient) ;; for magit
@@ -902,6 +944,28 @@ There are 110 pdf files in this directory
     (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
     (org-download-enable))  
 
+  (use-package org-mac-image-paste
+    :straight (org-mac-image-paste :type git :host github :repo "jdtsmith/org-mac-image-paste")
+    :if (eq window-system 'mac)
+    :config
+    (org-mac-image-paste-mode 1)
+    (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
+    (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc. 
+    (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
+    ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
+
+    ;; Optional: You can bind the paste image function to a key if desired
+    ;; (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
+    )
+  ;; changes behavior of evil-mode paste to org-yank (paste) in org mode, otherwise image isnt pasted.
+  (defun my/org-mode-evil-paste ()
+    "Replace evil-mode `p` with `org-yank` in Org mode."
+    (when (derived-mode-p 'org-mode)
+      (define-key evil-normal-state-local-map (kbd "p") 'org-yank)
+      (define-key evil-visual-state-local-map (kbd "p") 'org-yank)))
+
+  (add-hook 'org-mode-hook 'my/org-mode-evil-paste)
+
   ;; Persist history over Emacs restarts. Vertico sorts by history position.
   (use-package savehist
     :init
@@ -919,14 +983,29 @@ There are 110 pdf files in this directory
     Windows: download libtree-sitter-python.dll from https://corwin.bru.st/emacs-tree-sitter/ into ~/.emacs.d/tree-sitter/
     GNU/Linux: run M-x treesit-install-language-grammar RET type python RET and do a couple of additional y for default options. You will need to have git and C/Cpp compiler available as it would download repo and build grammar library.
 
-#+begin_src python
+#+begin_src emacs-lisp
 
-  (use-package micromamba)
-  
-  (setq major-mode-remap-alist
-   '((python-mode . python-ts-mode)))
+  (use-package micromamba
+    :config
+    (micromamba-activate "general"))
+
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
+
+  (add-hook 'python-ts-mode-hook #'run-python)
+
+  (setq python-indent-offset 2)
+  (setq org-edit-src-content-indentation 2)
+  (setq org-src-tab-acts-natively t)
+  (setq evil-auto-indent t)
+
 
 #+end_src
+
 
 **  Spacemacs
 #+begin_src emacs-lisp
@@ -979,6 +1058,9 @@ There are 110 pdf files in this directory
       "o"  '(:ignore o :which-key "org")
       "ot" '(org-babel-tangle :which-key "Tangle")
       "of" '(org-roam-node-find :which-key "Find Node")
+      "od" '(org-display-inline-images :which-key "Display Images")
+      "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
+      "oe" '(org-edit-special :which-key "org Edit Special")
 
       "c"  '(:ignore c :which-key "Citations")
       "ci" '(citar-insert-citation :which-key "insert-citation")
