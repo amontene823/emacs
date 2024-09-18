@@ -39,9 +39,9 @@
 (menu-bar-mode -1)
 (setq visible-bell t)
 ;; fonts
-(set-face-attribute 'default nil :font "Fira Code Retina" :height 150)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 150)
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 150 :weight 'regular)
+(set-face-attribute 'default nil :font "Fira Code Retina" :height 120)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 120 :weight 'regular)
 (column-number-mode)
 (global-display-line-numbers-mode t)
 ;; Disable line numbers for some modes
@@ -416,31 +416,43 @@
     (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package auctex
-   ;;:defer t
-   :hook ((LaTeX-mode . LaTeX-preview-setup)
-          (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
-          (LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
-          (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
-   :config
-   (setq TeX-auto-save t)
-   (setq TeX-parse-self t)
-   (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
-   (setq TeX-PDF-mode t))
+    ;;:defer t
+    :hook ((LaTeX-mode . LaTeX-preview-setup)
+           (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
+           (LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
+           (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
+    :init
+    (setq TeX-auto-save t)
+    (setq TeX-parse-self t)
+    (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
+    (setq TeX-PDF-mode t)
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+          TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+          LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
 
-(setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-   TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-   LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
-   TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
-;; to use pdfview with auctex
+          TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
+    (setq TeX-source-correlate-method 'synctex) ; enable synctex
+    (setq TeX-source-correlate-mode t)) ; enable text-source-correlate using synctex
 
- ;; (use-package company-auctex
-   ;; :after (company auctex)
-   ;; :config
-   ;; (company-auctex-init))
+(defun my-custom-function ()
+  "Automatically run `TeX-command-run-all` when a LaTeX file is saved."
+  (TeX-command-run-all nil))
 
- (use-package latex-preview-pane
-   ;;:after auctex
-   :hook (LaTeX-mode . latex-preview-pane-mode))
+(defun add-latex-save-hook ()
+  "Add a save hook to compile LaTeX files."
+  (add-hook 'after-save-hook 'my-custom-function nil t))  ;; Buffer-local hook
+
+(add-hook 'LaTeX-mode-hook 'add-latex-save-hook)
+
+  ;; (defun my-custom-function ()
+    ;; (TeX-command-run-all nil))
+  ;; (add-hook 'after-save-hook 'my-custom-function)
+
+  ;; (use-package latex-preview-pane
+  ;; :after auctex
+  ;; :config
+  ;; (latex-preview-pane-enable)
+  ;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
 (defun am/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -517,7 +529,7 @@
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-(setq org-format-latex-options '(:foreground default :background default :scale 1.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+(setq org-format-latex-options '(:foreground default :background default :scale 0.7 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
 (use-package cdlatex
   :hook (org-mode . turn-on-org-cdlatex))
@@ -674,7 +686,8 @@
   (require 'pdf-info))
 (defun my-pdf-view-mode-hook ()
   "Custom hook to fit PDF page to window on opening"
-  (pdf-view-fit-page-to-window))
+  (pdf-view-fit-page-to-window)
+  (auto-revert-mode))
 (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
 ;;(add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
@@ -722,7 +735,8 @@
    :states '(normal visual)
    :keymaps 'global-map
    "C-f" 'consult-ripgrep
-   "C-." 'embark-act)
+   "C-." 'embark-act
+   "C-i" 'evil-jump-forward)
   (am/leader-keys
     "b"  '(:ignore b :which-key "Buffer")
     "bb" '(next-buffer :which-key "Next")
@@ -790,6 +804,7 @@
   :hook (
          (lsp-completion-mode . my/lsp-mode-setup-completion)
          (python-mode . lsp-deferred)
+         (LaTeX-mode . lsp-deferred)
          (lsp-mode . lsp-enable-which-key-integration))
   :commands lsp lsp-deferred)
 
@@ -799,7 +814,15 @@
                          (require 'lsp-pyright)
                          (lsp-deferred))))  ; or lsp-deferred
 
-;; (use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-latex
+  ;; this uses texlab
+  :ensure t
+  :config
+  (progn
+    (add-hook 'bibtex-mode-hook 'lsp)
+    )
+  )
+(use-package lsp-ui :commands lsp-ui-mode)
 
 (use-package micromamba
   :config
