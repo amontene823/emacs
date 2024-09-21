@@ -1120,23 +1120,25 @@ There are 110 pdf files in this directory
 
 #+begin_src emacs-lisp
 
-    (use-package micromamba
-      :config
-      (micromamba-activate "general"))
+  (use-package micromamba
+    :init
+    (setq micromamba-executable "~/.local/bin/micromamba")
+    :config
+    (micromamba-activate "general"))
 
-    (use-package treesit-auto
-      :custom
-      (treesit-auto-install 'prompt)
-      :config
-      (treesit-auto-add-to-auto-mode-alist 'all)
-      (global-treesit-auto-mode))
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
 
-    (add-hook 'python-ts-mode-hook #'run-python)
+  (add-hook 'python-ts-mode-hook #'run-python)
 
-    (setq python-indent-offset 4)
-    (setq org-edit-src-content-indentation 2)
-    (setq org-src-tab-acts-natively t)
-    (setq evil-auto-indent t)
+  (setq python-indent-offset 4)
+  (setq org-edit-src-content-indentation 2)
+  (setq org-src-tab-acts-natively t)
+  (setq evil-auto-indent t)
 
 #+end_src
 

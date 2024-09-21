@@ -825,6 +825,8 @@
 (use-package lsp-ui :commands lsp-ui-mode)
 
 (use-package micromamba
+  :init
+  (setq micromamba-executable "~/.local/bin/micromamba")
   :config
   (micromamba-activate "general"))
 
