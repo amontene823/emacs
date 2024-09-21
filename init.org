@@ -689,14 +689,14 @@ Improves emacs startup time
            :target
            (file+head
             "%<%Y%m%d%H%M%S>-${slug}.org"
-            "#+title: ${note-title}\n")
+            "#+title: ${note-title}\n#+STARTUP: latexpreview")
            :unnarrowed t)
           ("n" "literature note" plain
            "%?"
            :target
            (file+head
             "%(expand-file-name (or citar-org-roam-subdir \"\") org-roam-directory)/${citar-citekey}.org"
-            "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n")
+            "#+title: ${citar-citekey} (${citar-date}). ${note-title}.\n#+created: %U\n#+last_modified: %U\n\n#+STARTUP: latexpreview")
            :unnarrowed t)))
   (setq citar-org-roam-capture-template-key "n")
 
