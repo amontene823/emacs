@@ -817,7 +817,7 @@ Improves emacs startup time
 
 #+RESULTS:
 #+begin_example
-There are 112 pdf files in this directory
+There are 114 pdf files in this directory
 /home/angelo/pdfs/sun2018orientational.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/novoselov2004electric.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/chynoweth1956dynamic.pdf Already added to bibfile... skipping
@@ -850,11 +850,14 @@ There are 112 pdf files in this directory
 /home/angelo/pdfs/yang2018mechanism.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/mukhin2005influence.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/basko2009electronelectron.pdf Already added to bibfile... skipping
+/home/angelo/pdfs/sridhar2010cavity.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/you2004synthesis.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/schaefer2017surfacespecific.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/von2013dynamics.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/mironov2019euf2based.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/jalali2017characterization.pdf Already added to bibfile... skipping
+/home/angelo/pdfs/SORinFew-CycleTAP95.pdf Adding to bibfile...
+key: sorokina2004cr2+doped
 /home/angelo/pdfs/dreier2018saturation.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/vojna2020verdet.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/backus2020probing.pdf Already added to bibfile... skipping
@@ -889,8 +892,6 @@ There are 112 pdf files in this directory
 /home/angelo/pdfs/helmholtz1853ueber.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/1979potassium.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/nair2008fine.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/1233-1239.pdf Adding to bibfile...
-key: sridhar2010cavity
 /home/angelo/pdfs/tong2017experimentally.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/zhang2011communication.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/froehlicher2015raman.pdf Already added to bibfile... skipping
@@ -904,33 +905,6 @@ key: sridhar2010cavity
 /home/angelo/pdfs/koechner1970thermal.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/zhang2020electromechanics.pdf Already added to bibfile... skipping
 /home/angelo/pdfs/pisana2007breakdown.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/walter2010solar.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/guo2008nanostructured.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/fumagalli2018anomalously.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/das2008monitoring.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/mironov2019thermooptical.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/balci2015grapheneenabled.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/gragson1998investigations.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/lumeau2016a.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/liu2017wurtzite.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/huang2021tracking.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/shimamura2001crystal.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/snetkov2018features.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/bjorneholm2016water.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/kogelnik1966laser.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/souza2011effect.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/weber1978magnetooptical.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/mcmillan1984a.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/dodia2019structure.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/zhong2016nonradiative.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/zhang2020water.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/peijzel2005a.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/markel2016introduction.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/das2011electronic.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/nihonyanagi2009direct.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/stevens2017commercializing.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/daniel2020analytical.pdf Already added to bibfile... skipping
-/home/angelo/pdfs/lipfert2014understanding.pdf Already added to bibfile... skipping
 #+end_example
 
 ** Other Packages
