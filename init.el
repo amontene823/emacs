@@ -49,10 +49,10 @@
   "Hook to disable line-number-mode"
   (display-line-numbers-mode 0))
 (dolist (hook `(org-mode-hook
-  	      term-mode-hook
-  	      shell-mode-hook
-  	      eshell-mode-hook
-  	      pdf-view-mode-hook))
+		term-mode-hook
+		shell-mode-hook
+		eshell-mode-hook
+		pdf-view-mode-hook))
   (add-hook hook #'disable-line-numbers))
 
 ;; doom
@@ -529,7 +529,8 @@
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-(setq org-format-latex-options '(:foreground default :background default :scale 0.7 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+;; Adjusts org latex font
+(setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
 (use-package cdlatex
   :hook (org-mode . turn-on-org-cdlatex))
