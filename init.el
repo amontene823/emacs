@@ -484,7 +484,7 @@
   (visual-line-mode 1))
 
 (use-package org
-  :straight (:type built-in) 
+  ;; :straight (:type built-in) 
   :hook
   (org-mode . am/org-mode-setup)
   ;; (org-src-mode-hook . company-mode)
