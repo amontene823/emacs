@@ -775,7 +775,7 @@
     "o"  '(:ignore o :which-key "org")
     "ot" '(org-babel-tangle :which-key "Tangle")
     "of" '(org-roam-node-find :which-key "Find Node")
-    "od" '(org-display-inline-images :which-key "Display Images")
+    "od" '(org-toggle-inline-images :which-key "Toggle Images")
     "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
     "oe" '(org-edit-special :which-key "org Edit Special")
 
