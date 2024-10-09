@@ -827,7 +827,8 @@
 
 (use-package micromamba
   :init
-  (setq micromamba-executable "~/.local/bin/micromamba")
+  (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
+  (setq micromamba-executable "~/.local/bin/micromamba"))
   :config
   (micromamba-activate "general"))
 

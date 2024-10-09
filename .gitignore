@@ -9,8 +9,8 @@ transient
 .org-id-locations
 bookmarks
 history
-straight/
 *test*
 url/
 tree-sitter
 projects
+straight
