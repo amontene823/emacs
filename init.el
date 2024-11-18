@@ -39,9 +39,9 @@
 (menu-bar-mode -1)
 (setq visible-bell t)
 ;; fonts
-(set-face-attribute 'default nil :font "Fira Code Retina" :height 120)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 120 :weight 'regular)
+(set-face-attribute 'default nil :font "Fira Code Retina" :height 140 :weight 'medium)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 140 :weight 'medium)
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 140 :weight 'medium)
 (column-number-mode)
 (global-display-line-numbers-mode t)
 ;; Disable line numbers for some modes
@@ -58,7 +58,8 @@
 ;; doom
 (use-package doom-themes)
 :config
-(load-theme 'doom-1337 t)
+;; (load-theme 'doom-1337 t)
+(load-theme 'modus-operandi t)
 (use-package doom-modeline
   :custom (doom-modeline-height 15)
   :config (doom-modeline-mode 1))
@@ -426,7 +427,7 @@
     (setq TeX-parse-self t)
     (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
     (setq TeX-PDF-mode t)
-    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+    (setq TeX-view-program-selection '((output-pdf "Pscrollools"))
           TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
           LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
 
@@ -455,141 +456,194 @@
   ;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
 (defun am/org-font-setup ()
-  ;; Replace list hyphen with dot
-  (font-lock-add-keywords 'org-mode
-                          '(("^ *\\([-]\\) "
-                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-  ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.4)
-                  (org-level-2 . 1.2)
-                  (org-level-3 . 1.1)
-                  (org-level-4 . 1.0)
-                  (org-level-5 . 1.0)
-                  (org-level-6 . 1.0)
-                  (org-level-7 . 1.0)
-                  (org-level-8 . 1.0)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+    ;; Replace list hyphen with dot
+    ;; (font-lock-add-keywords 'org-mode
+                            ;; '(("^ *\\([-]\\) "
+                               ;; (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+    ;; Set faces for heading levels
+    (dolist (face '((org-level-1 . 1.6)
+                    (org-level-2 . 1.4)
+                    (org-level-3 . 1.2)
+                    (org-level-4 . 1.0)
+                    (org-level-5 . 1.0)
+                    (org-level-6 . 1.0)
+                    (org-level-7 . 1.0)
+                    (org-level-8 . 1.0)))
+      (set-face-attribute (car face) nil :font "Cantarell" :weight 'bold :height (cdr face)))
+    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-(defun am/org-mode-setup ()
-  (org-indent-mode 1)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1))
+  (defun am/org-setup()
+    ;; Add frame borders and window dividers
+    (modify-all-frames-parameters
+     '((right-divider-width . 40)
+       (internal-border-width . 40)))
+    (dolist (face '(window-divider
+                    window-divider-first-pixel
+                    window-divider-last-pixel))
+      (face-spec-reset-face face)
+      (set-face-foreground face (face-attribute 'default :background)))
+    (set-face-background 'fringe (face-attribute 'default :background))
 
-(use-package org
-  ;; :straight (:type built-in) 
-  :hook
-  (org-mode . am/org-mode-setup)
-  ;; (org-src-mode-hook . company-mode)
+    (setq
+     ;; Edit settings
+     org-auto-align-tags nil
+     org-tags-column 0
+     org-catch-invisible-edits 'show-and-error
+     org-special-ctrl-a/e t
+     org-insert-heading-respect-content t
+     line-spacing 0.1
 
-  :config
-  (setq org-ellipsis " ▾"
-        org-hide-emphasis-markers nil
-        org-agenda-files
-        '("~/org"))
+     ;; Org styling, hide markup etc.
+     org-hide-emphasis-markers t
+     org-pretty-entities t
+
+     ;; Agenda styling
+     org-agenda-tags-column 0
+     org-agenda-block-separator ?─
+     org-agenda-time-grid
+     '((daily today require-timed)
+       (800 1000 1200 1400 1600 1800 2000)
+       " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+     org-agenda-current-time-string
+     "◀── now ─────────────────────────────────────────────────")
+
+    ;; Ellipsis styling
+    (setq org-ellipsis "…")
+    (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
+    (set-face-attribute 'org-table nil :inherit 'fixed-pitch) )
+
+
+
+
+  (defun am/org-mode-setup ()
+    ;; (org-indent-mode 1)
+    (variable-pitch-mode 1)
+    (visual-line-mode 1))
+
+  (use-package org
+    ;; :straight (:type built-in) 
+    :hook
+    (org-mode . am/org-mode-setup)
+    ;; (org-src-mode-hook . company-mode)
+    :config
+    (setq org-hide-emphasis-markers nil
+  	org-adapt-indentation t
+  	org-startup-indented t
+  	org-agenda-files
+  	'("~/org"))
+    (setq org-blank-before-new-entry
+  	'((heading . nil)
+            (plain-list-item . auto)))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+(setq org-hierarchical-todo-statistics nil)
   (auto-revert-mode 1)
-  (am/org-font-setup))
+  (am/org-font-setup)
+  (am/org-setup))
 
-(use-package org-bullets
-  :after org
-  :hook (org-mode . org-bullets-mode))
+  (use-package org-modern
+    :after org
+    :hook (org-mode . global-org-modern-mode)
+    :custom
+    (org-modern-star 'replace)
+    (org-modern-timestamp nil)) 
+    
+    (use-package org-roam
+      :init
+      (setq org-roam-vs-ack t)
+      :custom
+      (org-roam-directory (file-truename "~/org/roam/"))
+      (org-roam-db-autosync-mode)
+      (org-roam-completion-everywhere t)
+      :bind (("C-c n l" . org-roam-buffer-toggle)
+             ("C-c n f" . org-roam-node-find)
+             ("C-c n i" . org-roam-node-insert)
+             :map org-mode-map
+             ("C-M-i" . completion-at-point))
+      :config
+      (org-roam-setup))
 
-(use-package org-roam
-  :init
-  (setq org-roam-vs-ack t)
-  :custom
-  (org-roam-directory (file-truename "~/org/roam/"))
-  (org-roam-db-autosync-mode)
-  (org-roam-completion-everywhere t)
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         :map org-mode-map
-         ("C-M-i" . completion-at-point))
-  :config
-  (org-roam-setup))
+    ;; Org babel languages
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (shell . t)))
+    (setq org-confirm-babel-evaluate nil)
 
-;; Org babel languages
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (python . t)
-   (shell . t)))
-(setq org-confirm-babel-evaluate nil)
+    (require 'org-tempo)
+    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("py" . "src python"))
 
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
+    ;; Adjusts org latex font
+    (setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
-;; Adjusts org latex font
-(setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+    (use-package cdlatex
+      :hook (org-mode . turn-on-org-cdlatex))
 
-(use-package cdlatex
-  :hook (org-mode . turn-on-org-cdlatex))
+    (use-package org-fragtog
+      :hook (org-mode . org-fragtog-mode))
 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
+    (use-package org-noter
+      :after org-noter-pdftools)
 
-(use-package org-noter
-:after org-noter-pdftools)
+    (use-package org-pdftools
+      :hook (org-mode . org-pdftools-setup-link))
 
-(use-package org-pdftools
-  :hook (org-mode . org-pdftools-setup-link))
+    (use-package org-noter-pdftools
+      :after org-noter
+      :config
+      ;; Add a function to ensure precise note is inserted
+      (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+        (interactive "P")
+        (org-noter--with-valid-session
+         (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+                                                       (not org-noter-insert-note-no-questions)
+                                                     org-noter-insert-note-no-questions))
+               (org-pdftools-use-isearch-link t)
+               (org-pdftools-use-freepointer-annot t))
+  	 (org-noter-insert-note (org-noter--get-precise-info)))))
 
-(use-package org-noter-pdftools
-  :after org-noter
-  :config
-  ;; Add a function to ensure precise note is inserted
-  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                   (not org-noter-insert-note-no-questions)
-                                                 org-noter-insert-note-no-questions))
-           (org-pdftools-use-isearch-link t)
-           (org-pdftools-use-freepointer-annot t))
-       (org-noter-insert-note (org-noter--get-precise-info)))))
+      ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+      (defun org-noter-set-start-location (&optional arg)
+        "When opening a session with this document, go to the current location.
+       With a prefix ARG, remove start location."
+        (interactive "P")
+        (org-noter--with-valid-session
+         (let ((inhibit-read-only t)
+               (ast (org-noter--parse-root))
+               (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+  	 (with-current-buffer (org-noter--session-notes-buffer session)
+             (org-with-wide-buffer
+              (goto-char (org-element-property :begin ast))
+              (if arg
+  		(org-entry-delete nil org-noter-property-note-location)
+                (org-entry-put nil org-noter-property-note-location
+                               (org-noter--pretty-print-location location))))))))
+      (with-eval-after-load 'pdf-annot
+        (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 
-  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-  (defun org-noter-set-start-location (&optional arg)
-    "When opening a session with this document, go to the current location.
-  With a prefix ARG, remove start location."
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((inhibit-read-only t)
-           (ast (org-noter--parse-root))
-           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-       (with-current-buffer (org-noter--session-notes-buffer session)
-         (org-with-wide-buffer
-          (goto-char (org-element-property :begin ast))
-          (if arg
-              (org-entry-delete nil org-noter-property-note-location)
-            (org-entry-put nil org-noter-property-note-location
-                           (org-noter--pretty-print-location location))))))))
-  (with-eval-after-load 'pdf-annot
-    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
-
-(use-package org-roam-ui
-  :straight
-  (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-  :after org-roam
-  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-  ;;         a hookable mode anymore, you're advised to pick something yourself
-  ;;         if you don't care about startup time, use
-  ;;  :hook (after-init . org-roam-ui-mode)
-  :config
-  (setq org-roam-ui-sync-theme t
-        org-roam-ui-follow t
-        org-roam-ui-update-on-save t
-        org-roam-ui-open-on-start t))
+    (use-package org-roam-ui
+      :straight
+      (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+      :after org-roam
+      ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+      ;;         a hookable mode anymore, you're advised to pick something yourself
+      ;;         if you don't care about startup time, use
+      ;;  :hook (after-init . org-roam-ui-mode)
+      :config
+      (setq org-roam-ui-sync-theme t
+            org-roam-ui-follow t
+            org-roam-ui-update-on-save t
+            org-roam-ui-open-on-start t))
 
 (use-package citar
     :custom
