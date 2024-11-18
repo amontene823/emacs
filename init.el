@@ -542,7 +542,7 @@
   	'((heading . nil)
             (plain-list-item . auto)))
 (setq org-todo-keywords
-      '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
+      '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
 (setq org-hierarchical-todo-statistics nil)
   (auto-revert-mode 1)
   (am/org-font-setup)
