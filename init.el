@@ -538,9 +538,9 @@
   	org-startup-indented t
   	org-agenda-files
   	'("~/org"))
-    (setq org-blank-before-new-entry
-  	'((heading . nil)
-            (plain-list-item . auto)))
+    ;; (setq org-blank-before-new-entry
+  	;; '((heading . nil)
+            ;; (plain-list-item . auto)))
 (setq org-todo-keywords
       '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
 (setq org-hierarchical-todo-statistics nil)
@@ -764,16 +764,8 @@
   ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
 
   ;; Optional: You can bind the paste image function to a key if desired
-  ;; (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
+  (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
   )
-;; changes behavior of evil-mode paste to org-yank (paste) in org mode, otherwise image isnt pasted.
-(defun my/org-mode-evil-paste ()
-  "Replace evil-mode `p` with `org-yank` in Org mode."
-  (when (derived-mode-p 'org-mode)
-    (define-key evil-normal-state-local-map (kbd "p") 'org-yank)
-    (define-key evil-visual-state-local-map (kbd "p") 'org-yank)))
-
-(add-hook 'org-mode-hook 'my/org-mode-evil-paste)
 
 ;; Persist history over Emacs restarts. Vertico sorts by history position.
 (use-package savehist

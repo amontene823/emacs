@@ -605,9 +605,9 @@ Improves emacs startup time
       	org-startup-indented t
       	org-agenda-files
       	'("~/org"))
-        (setq org-blank-before-new-entry
-      	'((heading . nil)
-                (plain-list-item . auto)))
+        ;; (setq org-blank-before-new-entry
+      	;; '((heading . nil)
+                ;; (plain-list-item . auto)))
     (setq org-todo-keywords
           '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
     (setq org-hierarchical-todo-statistics nil)
@@ -963,69 +963,61 @@ key: sorokina2004cr2+doped
 ** Other Packages
 #+begin_src emacs-lisp
 
-    (use-package which-key
-      :diminish which-key-mode
-      :config
-      (setq which-key-idle-delay 0)
-      (which-key-mode))
+  (use-package which-key
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0)
+    (which-key-mode))
 
-    (use-package helpful
-      ;;:custom
-      ;;(counsel-describe-function-function #'helpful-callable)
-      ;;(counsel-describe-variable-function #'helpful-variable)
-      :bind
-      ;;([remap describe-function] . counsel-describe-function)
-      ([remap describe-command] . helpful-command)
-      ;;([remap describe-variable] . counsel-describe-variable)
-      ([remap describe-key] . helpful-key))
+  (use-package helpful
+    ;;:custom
+    ;;(counsel-describe-function-function #'helpful-callable)
+    ;;(counsel-describe-variable-function #'helpful-variable)
+    :bind
+    ;;([remap describe-function] . counsel-describe-function)
+    ([remap describe-command] . helpful-command)
+    ;;([remap describe-variable] . counsel-describe-variable)
+    ([remap describe-key] . helpful-key))
 
-    (use-package magit)
-    (use-package transient) ;; for magit
-    (use-package vterm)
-    (use-package pdf-tools
-      :config
-      (pdf-tools-install :no-query)
-      (require 'pdf-info))
-    (defun my-pdf-view-mode-hook ()
-      "Custom hook to fit PDF page to window on opening"
-      (pdf-view-fit-page-to-window)
-      (auto-revert-mode))
-    (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
-    ;;(add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
+  (use-package magit)
+  (use-package transient) ;; for magit
+  (use-package vterm)
+  (use-package pdf-tools
+    :config
+    (pdf-tools-install :no-query)
+    (require 'pdf-info))
+  (defun my-pdf-view-mode-hook ()
+    "Custom hook to fit PDF page to window on opening"
+    (pdf-view-fit-page-to-window)
+    (auto-revert-mode))
+  (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
+  ;;(add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
-    (use-package org-download
-      :config
-      (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
-      (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
-      (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
-      (org-download-enable))  
+  (use-package org-download
+    :config
+    (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
+    (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
+    (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
+    (org-download-enable))  
 
-    (use-package org-mac-image-paste
-      :straight (org-mac-image-paste :type git :host github :repo "jdtsmith/org-mac-image-paste")
-      :if (eq window-system 'mac)
-      :config
-      (org-mac-image-paste-mode 1)
-      (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
-      (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc. 
-      (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
-      ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
+  (use-package org-mac-image-paste
+    :straight (org-mac-image-paste :type git :host github :repo "jdtsmith/org-mac-image-paste")
+    :if (eq window-system 'mac)
+    :config
+    (org-mac-image-paste-mode 1)
+    (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
+    (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc. 
+    (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
+    ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
 
-      ;; Optional: You can bind the paste image function to a key if desired
-      ;; (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
-      )
-    ;; changes behavior of evil-mode paste to org-yank (paste) in org mode, otherwise image isnt pasted.
-    (defun my/org-mode-evil-paste ()
-      "Replace evil-mode `p` with `org-yank` in Org mode."
-      (when (derived-mode-p 'org-mode)
-        (define-key evil-normal-state-local-map (kbd "p") 'org-yank)
-        (define-key evil-visual-state-local-map (kbd "p") 'org-yank)))
+    ;; Optional: You can bind the paste image function to a key if desired
+    (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
+    )
 
-    (add-hook 'org-mode-hook 'my/org-mode-evil-paste)
-
-    ;; Persist history over Emacs restarts. Vertico sorts by history position.
-    (use-package savehist
-      :init
-      (savehist-mode))
+  ;; Persist history over Emacs restarts. Vertico sorts by history position.
+  (use-package savehist
+    :init
+    (savehist-mode))
 
 
 #+end_src
