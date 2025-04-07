@@ -505,6 +505,7 @@
      ;; Org styling, hide markup etc.
      org-hide-emphasis-markers t
      org-pretty-entities t
+     org-pretty-entities-include-sub-superscripts nil
 
      ;; Agenda styling
      org-agenda-tags-column 0
