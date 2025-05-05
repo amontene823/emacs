@@ -569,16 +569,13 @@ Improves emacs startup time
          org-insert-heading-respect-content t
          line-spacing 0.1
 
-<<<<<<< HEAD
-       ;; Org styling, hide markup etc.
-       org-hide-emphasis-markers t
-       org-pretty-entities t
-       org-pretty-entities-include-sub-superscripts nil
-=======
          ;; Org styling, hide markup etc.
          org-hide-emphasis-markers t
          org-pretty-entities t
->>>>>>> 5a6316d (added publishing)
+         org-pretty-entities-include-sub-superscripts nil
+         ;; Org styling, hide markup etc.
+         org-hide-emphasis-markers t
+         org-pretty-entities t
 
          ;; Agenda styling
          org-agenda-tags-column 0
