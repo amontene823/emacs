@@ -789,77 +789,79 @@
   :init
   (savehist-mode))
 
-(file-name-nondirectory (expand-file-name "~/references/images"))
+(when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
+  (file-name-nondirectory (expand-file-name "~/references/images"))
 
-(defun my-org-paste-image-to-dir ()
-  "Paste an image into a time stamped unique-named file in the
-  same directory as the org-buffer and insert a link to this file."
-  (interactive)
-  (let* ((image-filename
-           (concat
-            (read-from-minibuffer "Enter something: ") ".png"))
-	  (unix-path
-           (concat
-              (expand-file-name "~")
-              "/references/images/"
-              image-filename))
-          (wsl-path
-           (as-windows-path (concat
-              (expand-file-name "~")
-              "/references/images/"
-              image-filename)))
-          (ps-script
-           (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+  (defun my-org-paste-image-to-dir ()
+    "Paste an image into a time stamped unique-named file in the
+    same directory as the org-buffer and insert a link to this file."
+    (interactive)
+    (let* ((image-filename
+             (concat
+              (read-from-minibuffer "Enter something: ") ".png"))
+  	  (unix-path
+             (concat
+                (expand-file-name "~")
+                "/references/images/"
+                image-filename))
+            (wsl-path
+             (as-windows-path (concat
+                (expand-file-name "~")
+                "/references/images/"
+                image-filename)))
+            (ps-script
+             (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
 
-    (powershell ps-script)
-    (message "here is") (message wsl-path) (message image-filename)
+      (powershell ps-script)
+      (message "here is") (message wsl-path) (message image-filename)
 
-    (if (file-exists-p unix-path)
-        (progn (insert (concat "[[" unix-path"]]"))
-               (org-display-inline-images))
-      (user-error
-       "Error pasting the image, make sure you have an image in the clipboard!"))
-    ))
+      (if (file-exists-p unix-path)
+          (progn (insert (concat "[[" unix-path"]]"))
+                 (org-display-inline-images))
+        (user-error
+         "Error pasting the image, make sure you have an image in the clipboard!"))
+      ))
 
-(file-exists-p "\\wsl.localhost\\arch\\home\\angelo\\references\\images\\test.png")
-(defun my-org-paste-image ()
-  "Paste an image into a time stamped unique-named file in the
-  same directory as the org-buffer and insert a link to this file."
-  (interactive)
-  (let* ((target-file
-          (concat
-           (make-temp-name
-            (concat (buffer-file-name)
-                    "_"
-                    (format-time-string "%Y%m%d_"))) ".png"))
-         (wsl-path
-          (concat (as-windows-path(file-name-directory target-file))
-                  "\\"
-                  (file-name-nondirectory target-file)))
-         (ps-script
-          (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+  (file-exists-p "\\wsl.localhost\\arch\\home\\angelo\\references\\images\\test.png")
+  (defun my-org-paste-image ()
+    "Paste an image into a time stamped unique-named file in the
+    same directory as the org-buffer and insert a link to this file."
+    (interactive)
+    (let* ((target-file
+            (concat
+             (make-temp-name
+              (concat (buffer-file-name)
+                      "_"
+                      (format-time-string "%Y%m%d_"))) ".png"))
+           (wsl-path
+            (concat (as-windows-path(file-name-directory target-file))
+                    "\\"
+                    (file-name-nondirectory target-file)))
+           (ps-script
+            (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
 
-    (powershell ps-script)
+      (powershell ps-script)
 
-    (if (file-exists-p target-file)
-        (progn (insert (concat "[[" target-file "]]"))
-               (org-display-inline-images))
-      (user-error
-       "Error pasting the image, make sure you have an image in the clipboard!"))
-    ))
+      (if (file-exists-p target-file)
+          (progn (insert (concat "[[" target-file "]]"))
+                 (org-display-inline-images))
+        (user-error
+         "Error pasting the image, make sure you have an image in the clipboard!"))
+      ))
 
-(defun as-windows-path (unix-path)
-  "Takes a unix path and returns a matching WSL path
-  (e.g. \\\\wsl$\\Ubuntu-20.04\\tmp)"
-  ;; substring removes the trailing \n
-  (substring
-   (shell-command-to-string
-    (concat "wslpath -w " unix-path)) 0 -1))
+  (defun as-windows-path (unix-path)
+    "Takes a unix path and returns a matching WSL path
+    (e.g. \\\\wsl$\\Ubuntu-20.04\\tmp)"
+    ;; substring removes the trailing \n
+    (substring
+     (shell-command-to-string
+      (concat "wslpath -w " unix-path)) 0 -1))
 
-(defun powershell (script)
-  "executes the given script within a powershell and returns its return value"
-  (call-process "powershell.exe" nil nil nil
-                "-Command" (concat "& {" script "}")))
+  (defun powershell (script)
+    "executes the given script within a powershell and returns its return value"
+    (call-process "powershell.exe" nil nil nil
+                  "-Command" (concat "& {" script "}")))
+  )
 
 (use-package general
   :config
@@ -960,12 +962,12 @@
   )
 (use-package lsp-ui :commands lsp-ui-mode)
 
-(use-package micromamba
-  :init
-  (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
-  (setq micromamba-executable "~/.local/bin/micromamba"))
-  :config
-  (micromamba-activate "general"))
+;; (use-package micromamba
+  ;; :init
+  ;; (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
+  ;; (setq micromamba-executable "~/.local/bin/micromamba"))
+  ;; :config
+  ;; (micromamba-activate "general"))
 
 (use-package treesit-auto
   :custom
