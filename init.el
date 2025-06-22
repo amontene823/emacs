@@ -662,6 +662,9 @@
          :with-broken-links t
          )))
 
+;; org special edit splits to the right
+(setq org-src-window-setup 'split-window-right)
+
 (use-package citar
     :custom
     (citar-bibliography '("~/pdfs/bibfile.bib"))
@@ -962,12 +965,7 @@
 ;;   (add-to-list 'eglot-server-programs
 ;;                '(python-mode . ("ruff-lsp"))))
 
-;; (use-package micromamba
-    ;; :init
-    ;; (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
-    ;; (setq micromamba-executable "~/.local/bin/micromamba"))
-    ;; :config
- (defun uv-activate ()
+(defun uv-activate ()
   "Activate Python environment managed by uv based on current project directory.
 Looks for .venv directory in project root and activates the Python interpreter."
   (interactive)

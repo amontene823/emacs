@@ -33,6 +33,14 @@ Improves emacs startup time
 #+end_src
 
 *** Straight
++ To update a single package, e.g.,
+    + M-x straight-pull-package RET doom-modeline RET
++ To update all packages:
+    + M-x straight-pull-all
+    + M-x straight-rebuild-all
++ To freeze the current versions of all packages: M-x straight-freeze-versions
+    + Frozen lockfile saved to: ~/.config/emacs/straight/versions/default.el
+
 #+begin_src emacs-lisp
 
    (defvar bootstrap-version)
@@ -728,6 +736,9 @@ Improves emacs startup time
            :publishing-function org-html-publish-to-html
            :with-broken-links t
            )))
+
+  ;; org special edit splits to the right
+  (setq org-src-window-setup 'split-window-right)
 #+end_src
 
 ** Reference Management
@@ -1230,26 +1241,6 @@ key: sorokina2004cr2+doped
 
 #+RESULTS:
 
-*** Bug fix:
-+ Eglot and doom modeline clashing, wont allow language server to be closed after starting
-https://github.com/seagle0128/doom-modeline/issues/739
-
-diff --git a/doom-modeline-segments.el b/doom-modeline-segments.el
-index 3a65892..00ff92b 100644
---- a/doom-modeline-segments.el
-+++ b/doom-modeline-segments.el
-@@ -2058,8 +2058,8 @@ mouse-1: Reload to start server")
-                            (nick 'doom-modeline-lsp-success)
-                            (t 'doom-modeline-lsp-warning)))
-                (server-info (and server (eglot--server-info server)))
--               (server-name (or (plist-get server-info :name)
--                                (jsonrpc-name server) ""))
-+               (server-name (and server (or (plist-get server-info :name)
-+                                            (jsonrpc-name server) "")))
-                (major-modes (or (and server-info (eglot--major-modes server)) ""))
-                (icon (doom-modeline-lsp-icon eglot-menu-string face)))
-           (propertize icon
-
 ** Python
 *** Make sure you have Emacs with treesitter support:
     M-: (treesit-available-p) RET should return t
@@ -1260,11 +1251,6 @@ index 3a65892..00ff92b 100644
 
 #+begin_src emacs-lisp
 
-    ;; (use-package micromamba
-      ;; :init
-      ;; (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
-      ;; (setq micromamba-executable "~/.local/bin/micromamba"))
-      ;; :config
    (defun uv-activate ()
     "Activate Python environment managed by uv based on current project directory.
   Looks for .venv directory in project root and activates the Python interpreter."
@@ -1315,4 +1301,7 @@ index 3a65892..00ff92b 100644
     (setq evil-auto-indent t)
 
 #+end_src
+
+#+RESULTS:
+: t
 
