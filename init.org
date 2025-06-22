@@ -1227,15 +1227,14 @@ key: sorokina2004cr2+doped
   ;;   )
   ;; (use-package lsp-ui :commands lsp-ui-mode)
 
-  ;; (with-eval-after-load 'eglot
-  ;;   (add-to-list 'eglot-server-programs
-  ;;                '(python-mode . ("ruff-lsp"))))
+  (use-package eglot
+    :straight (:type built-in)  ;; Important if using straight.el
+    :config
+    (add-to-list 'eglot-server-programs
+                 '(python-ts-mode . ("pyright-langserver" "--stdio")))
+    (add-to-list 'org-src-lang-modes '("python" . python-ts)))
 
-  ;; (use-package eglot
-  ;;   :hook ((python-mode . eglot-ensure))
-  ;;   :config
-  ;;   (add-to-list 'eglot-server-programs
-  ;;                '(python-mode . ("ruff-lsp"))))
+
 
 #+end_src
 
@@ -1252,9 +1251,9 @@ key: sorokina2004cr2+doped
 
 #+begin_src emacs-lisp
 
-   (defun uv-activate ()
+  (defun uv-activate ()
     "Activate Python environment managed by uv based on current project directory.
-  Looks for .venv directory in project root and activates the Python interpreter."
+    Looks for .venv directory in project root and activates the Python interpreter."
     (interactive)
     (let* ((project-root (project-root (project-current t)))
            (venv-path (expand-file-name ".venv" project-root))
@@ -1285,21 +1284,38 @@ key: sorokina2004cr2+doped
             (setenv "PYTHONHOME" nil)
 
             (message "Activated UV Python environment at %s" venv-path))
-        (error "No UV Python environment found in %s" project-root))))   ;; (micromamba-activate "general"))
+        (error "No UV Python environment found in %s" project-root))))
 
-    (use-package treesit-auto
-      :custom
-      (treesit-auto-install 'prompt)
-      :config
-      (treesit-auto-add-to-auto-mode-alist 'all)
-      (global-treesit-auto-mode))
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
 
-    (add-hook 'python-ts-mode-hook #'run-python)
+  ;; (add-hook 'python-ts-mode-hook #'uv-activate)
+  ;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
+  ;; (add-hook 'python-ts-mode-hook #'run-python)
 
-    (setq python-indent-offset 4)
-    (setq org-edit-src-content-indentation 2)
-    (setq org-src-tab-acts-natively t)
-    (setq evil-auto-indent t)
+  (add-hook 'python-ts-mode-hook
+            (lambda ()
+              (uv-activate)
+              (eglot-ensure)
+              (when (get-buffer "*Python*")
+                (kill-buffer "*Python*"))
+              (run-python)))
+
+  (add-to-list 'display-buffer-alist
+               '("\\*Python\\*"
+                 (display-buffer-reuse-window
+                  display-buffer-at-bottom)
+                 (window-height . 0.25)))
+
+
+  (setq python-indent-offset 4)
+  (setq org-edit-src-content-indentation 2)
+  (setq org-src-tab-acts-natively t)
+  (setq evil-auto-indent t)
 
 #+end_src
 
