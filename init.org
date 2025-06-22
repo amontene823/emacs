@@ -1186,47 +1186,70 @@ key: sorokina2004cr2+doped
 #+begin_src emacs-lisp
 
   ;; (use-package lsp-mode
-  ;; :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  ;; (setq lsp-keymap-prefix "C-c l")
-  ;; :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-  ;; (python-mode . lsp-deferred)
-  ;; if you want which-key integration
-  ;; (lsp-mode . lsp-enable-which-key-integration))
-  ;; :commands lsp lsp-deferred)
+  ;;   :custom
+  ;;   (lsp-completion-provider :none) ;; we use Corfu!
+  ;;   :init
+  ;;   (setq lsp-keymap-prefix "C-c l")
+  ;;   (defun my/lsp-mode-setup-completion ()
+  ;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+  ;;           '(orderless))) ;; Configure orderless
+  ;;   :hook (
+  ;;          (lsp-completion-mode . my/lsp-mode-setup-completion)
+  ;;          (python-mode . lsp-deferred)
+  ;;          (LaTeX-mode . lsp-deferred)
+  ;;          (lsp-mode . lsp-enable-which-key-integration))
+  ;;   :commands lsp lsp-deferred)
 
-  (use-package lsp-mode
-    :custom
-    (lsp-completion-provider :none) ;; we use Corfu!
-    :init
-    (setq lsp-keymap-prefix "C-c l")
-    (defun my/lsp-mode-setup-completion ()
-      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-            '(orderless))) ;; Configure orderless
-    :hook (
-           (lsp-completion-mode . my/lsp-mode-setup-completion)
-           (python-mode . lsp-deferred)
-           (LaTeX-mode . lsp-deferred)
-           (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp lsp-deferred)
+  ;; (use-package lsp-pyright
+  ;;   :ensure t
+  ;;   :hook (python-mode . (lambda ()
+  ;;                          (require 'lsp-pyright)
+  ;;                          (lsp-deferred))))  ; or lsp-deferred
 
-  (use-package lsp-pyright
-    :ensure t
-    :hook (python-mode . (lambda ()
-                           (require 'lsp-pyright)
-                           (lsp-deferred))))  ; or lsp-deferred
+  ;; (use-package lsp-latex
+  ;;   ;; this uses texlab
+  ;;   :ensure t
+  ;;   :config
+  ;;   (progn
+  ;;     (add-hook 'bibtex-mode-hook 'lsp)
+  ;;     )
+  ;;   )
+  ;; (use-package lsp-ui :commands lsp-ui-mode)
 
-  (use-package lsp-latex
-    ;; this uses texlab
-    :ensure t
-    :config
-    (progn
-      (add-hook 'bibtex-mode-hook 'lsp)
-      )
-    )
-  (use-package lsp-ui :commands lsp-ui-mode)
+  ;; (with-eval-after-load 'eglot
+  ;;   (add-to-list 'eglot-server-programs
+  ;;                '(python-mode . ("ruff-lsp"))))
+
+  ;; (use-package eglot
+  ;;   :hook ((python-mode . eglot-ensure))
+  ;;   :config
+  ;;   (add-to-list 'eglot-server-programs
+  ;;                '(python-mode . ("ruff-lsp"))))
 
 #+end_src
+
+#+RESULTS:
+
+*** Bug fix:
++ Eglot and doom modeline clashing, wont allow language server to be closed after starting
+https://github.com/seagle0128/doom-modeline/issues/739
+
+diff --git a/doom-modeline-segments.el b/doom-modeline-segments.el
+index 3a65892..00ff92b 100644
+--- a/doom-modeline-segments.el
++++ b/doom-modeline-segments.el
+@@ -2058,8 +2058,8 @@ mouse-1: Reload to start server")
+                            (nick 'doom-modeline-lsp-success)
+                            (t 'doom-modeline-lsp-warning)))
+                (server-info (and server (eglot--server-info server)))
+-               (server-name (or (plist-get server-info :name)
+-                                (jsonrpc-name server) ""))
++               (server-name (and server (or (plist-get server-info :name)
++                                            (jsonrpc-name server) "")))
+                (major-modes (or (and server-info (eglot--major-modes server)) ""))
+                (icon (doom-modeline-lsp-icon eglot-menu-string face)))
+           (propertize icon
+
 ** Python
 *** Make sure you have Emacs with treesitter support:
     M-: (treesit-available-p) RET should return t
@@ -1237,26 +1260,59 @@ key: sorokina2004cr2+doped
 
 #+begin_src emacs-lisp
 
-  ;; (use-package micromamba
-    ;; :init
-    ;; (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
-    ;; (setq micromamba-executable "~/.local/bin/micromamba"))
-    ;; :config
-    ;; (micromamba-activate "general"))
+    ;; (use-package micromamba
+      ;; :init
+      ;; (when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
+      ;; (setq micromamba-executable "~/.local/bin/micromamba"))
+      ;; :config
+   (defun uv-activate ()
+    "Activate Python environment managed by uv based on current project directory.
+  Looks for .venv directory in project root and activates the Python interpreter."
+    (interactive)
+    (let* ((project-root (project-root (project-current t)))
+           (venv-path (expand-file-name ".venv" project-root))
+           (python-path (expand-file-name
+                         (if (eq system-type 'windows-nt)
+                             "Scripts/python.exe"
+                           "bin/python")
+                         venv-path)))
+      (if (file-exists-p python-path)
+          (progn
+            ;; Set Python interpreter path
+            (setq python-shell-interpreter python-path)
 
-  (use-package treesit-auto
-    :custom
-    (treesit-auto-install 'prompt)
-    :config
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
+            ;; Update exec-path to include the venv's bin directory
+            (let ((venv-bin-dir (file-name-directory python-path)))
+              (setq exec-path (cons venv-bin-dir
+                                    (remove venv-bin-dir exec-path))))
 
-  (add-hook 'python-ts-mode-hook #'run-python)
+            ;; Update PATH environment variable
+            (setenv "PATH" (concat (file-name-directory python-path)
+                                   path-separator
+                                   (getenv "PATH")))
 
-  (setq python-indent-offset 4)
-  (setq org-edit-src-content-indentation 2)
-  (setq org-src-tab-acts-natively t)
-  (setq evil-auto-indent t)
+            ;; Update VIRTUAL_ENV environment variable
+            (setenv "VIRTUAL_ENV" venv-path)
+
+            ;; Remove PYTHONHOME if it exists
+            (setenv "PYTHONHOME" nil)
+
+            (message "Activated UV Python environment at %s" venv-path))
+        (error "No UV Python environment found in %s" project-root))))   ;; (micromamba-activate "general"))
+
+    ;; (use-package treesit-auto
+    ;;   :custom
+    ;;   (treesit-auto-install 'prompt)
+    ;;   :config
+    ;;   (treesit-auto-add-to-auto-mode-alist 'all)
+    ;;   (global-treesit-auto-mode))
+
+    ;; (add-hook 'python-ts-mode-hook #'run-python)
+
+    (setq python-indent-offset 4)
+    (setq org-edit-src-content-indentation 2)
+    (setq org-src-tab-acts-natively t)
+    (setq evil-auto-indent t)
 
 #+end_src
 
