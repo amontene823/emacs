@@ -1000,14 +1000,14 @@ Looks for .venv directory in project root and activates the Python interpreter."
           (message "Activated UV Python environment at %s" venv-path))
       (error "No UV Python environment found in %s" project-root))))   ;; (micromamba-activate "general"))
 
-  ;; (use-package treesit-auto
-  ;;   :custom
-  ;;   (treesit-auto-install 'prompt)
-  ;;   :config
-  ;;   (treesit-auto-add-to-auto-mode-alist 'all)
-  ;;   (global-treesit-auto-mode))
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode))
 
-  ;; (add-hook 'python-ts-mode-hook #'run-python)
+  (add-hook 'python-ts-mode-hook #'run-python)
 
   (setq python-indent-offset 4)
   (setq org-edit-src-content-indentation 2)

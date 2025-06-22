@@ -1243,6 +1243,7 @@ key: sorokina2004cr2+doped
 
 ** Python
 *** Make sure you have Emacs with treesitter support:
++ Treesitter provides better syntax highlighting and parsing vs. classic mode (e.g, python-ts-mode better than python-mode)
     M-: (treesit-available-p) RET should return t
 
     Make sure you have installed python treesitter grammar
@@ -1286,14 +1287,14 @@ key: sorokina2004cr2+doped
             (message "Activated UV Python environment at %s" venv-path))
         (error "No UV Python environment found in %s" project-root))))   ;; (micromamba-activate "general"))
 
-    ;; (use-package treesit-auto
-    ;;   :custom
-    ;;   (treesit-auto-install 'prompt)
-    ;;   :config
-    ;;   (treesit-auto-add-to-auto-mode-alist 'all)
-    ;;   (global-treesit-auto-mode))
+    (use-package treesit-auto
+      :custom
+      (treesit-auto-install 'prompt)
+      :config
+      (treesit-auto-add-to-auto-mode-alist 'all)
+      (global-treesit-auto-mode))
 
-    ;; (add-hook 'python-ts-mode-hook #'run-python)
+    (add-hook 'python-ts-mode-hook #'run-python)
 
     (setq python-indent-offset 4)
     (setq org-edit-src-content-indentation 2)
