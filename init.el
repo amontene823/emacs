@@ -190,10 +190,10 @@
 
   (use-package corfu
     ;; Optional customizations
-    ;; :custom
+    :custom
     ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
     ;; (corfu-auto t)                 ;; Enable auto completion
-    ;; (corfu-separator ?\s)          ;; Orderless field separator
+    (corfu-separator ?\s)          ;; Orderless field separator
     ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
     ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
     ;; (corfu-preview-current nil)    ;; Disable current candidate preview
@@ -212,7 +212,11 @@
     :bind
     (:map corfu-map ("SPC" . corfu-insert-separator))
     :init
-    (global-corfu-mode))
+    (global-corfu-mode)
+    :config
+    (corfu-popupinfo-mode)
+    (corfu-history-mode)
+	)
 
   (use-package emacs
     :straight (:type built-in)
@@ -953,6 +957,7 @@
 ;;     (add-hook 'bibtex-mode-hook 'lsp)
 ;;     )
 ;;   )
+
 ;; (use-package lsp-ui :commands lsp-ui-mode)
 
 (use-package eglot
@@ -964,7 +969,7 @@
 
 (defun uv-activate ()
   "Activate Python environment managed by uv based on current project directory.
-  Looks for .venv directory in project root and activates the Python interpreter."
+    Looks for .venv directory in project root and activates the Python interpreter."
   (interactive)
   (let* ((project-root (project-root (project-current t)))
          (venv-path (expand-file-name ".venv" project-root))
@@ -1008,19 +1013,36 @@
 ;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
 ;; (add-hook 'python-ts-mode-hook #'run-python)
 
-(add-hook 'python-ts-mode-hook
-          (lambda ()
-            (uv-activate)
-            (eglot-ensure)
-            (when (get-buffer "*Python*")
-              (kill-buffer "*Python*"))
-            (run-python)))
+;; (add-to-list 'display-buffer-alist
+;;              '("\\*Python\\*"
+;;                (display-buffer-reuse-window
+;;                 display-buffer-at-bottom)
+;;                (window-height . 0.25)))
 
-(add-to-list 'display-buffer-alist
-             '("\\*Python\\*"
-               (display-buffer-reuse-window
-                display-buffer-at-bottom)
-               (window-height . 0.25)))
+(add-hook
+ 'python-ts-mode-hook
+ (lambda ()
+   (uv-activate)
+   (eglot-ensure)
+   ;; (when (get-buffer "*Python*")
+   ;; (kill-buffer "*Python*"))
+   (run-python)))
+
+;; (use-package apheleia
+  ;; :defines (apheleia-formatters apheleia-mode-alist)
+  ;; :hook (after-init . apheleia-global-mode)
+  ;; :config
+  ;; Use 'ruff' instead of 'black'. Remove 'ruff-isort' when 'ruff format'
+  ;; supports it.
+  ;; Check - https://docs.astral.sh/ruff/formatter/#sorting-imports
+  ;; https://github.com/astral-sh/ruff/issues/8232
+  ;; (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
+  ;; (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
+
+;; (use-package lazy-ruff
+;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
+;; :config
+;; (lazy-ruff-global-mode t)) ;; Enable the lazy-ruff minor mode globally
 
 
 (setq python-indent-offset 4)
