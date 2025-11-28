@@ -756,14 +756,14 @@ Improves emacs startup time
 
   (use-package citar
     :custom
-    (citar-bibliography '("~/pdfs/bibfile.bib"))
+    (citar-bibliography '("~/references/pdfs/bibfile.bib"))
     ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
     (citar-open-entry-function #'citar-open-entry-in-file)
-    (citar-library-paths '("~/pdfs" "~/pdfs/books"))
+    (citar-library-paths '("~/references/pdfs" "~/references/pdfs/books"))
     :hook
     (LaTeX-mode . citar-capf-setup)
     (org-mode . citar-capf-setup))
-  (setq org-cite-global-bibliography '("~/pdfs/bibfile.bib"))
+  (setq org-cite-global-bibliography '("~/references/pdfs/bibfile.bib"))
 
   (use-package citar-embark
     :after citar embark
@@ -794,16 +794,16 @@ Improves emacs startup time
   (use-package org-ref
     :after (org-roam org)
     :config
-    (setq org-ref-default-bibliography '("~/pdfs/bibfile.bib")
-          org-ref-pdf-directory "~/pdfs/"))
+    (setq org-ref-default-bibliography '("~/references/pdfs/bibfile.bib")
+          org-ref-pdf-directory "~/references/pdfs/"))
   (require 'doi-utils)
 
   (use-package bibtex-completion
     :after (org-roam org)
     :custom
-    (bibtex-completion-bibliography '("~/pdfs/bibfile.bib"))
-    (bibtex-completion-library-path '("~/pdfs"))
-    (bibtex-completion-notes-path '("~/org/roam")))
+    (bibtex-completion-bibliography '("~/references/pdfs/bibfile.bib"))
+    (bibtex-completion-library-path '("~/references/pdfs"))
+    (bibtex-completion-notes-path "~/org/roam"))
 
   ;; Sci-hub
 (defun sci-hub-pdf-url (doi)
