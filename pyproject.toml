@@ -1,0 +1,9 @@
+[project]
+name = "emacs"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pdf2bib>=1.2",
+]

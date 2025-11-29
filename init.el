@@ -671,14 +671,14 @@
 
 (use-package citar
     :custom
-    (citar-bibliography '("~/references/pdfs/bibfile.bib"))
+    (citar-bibliography '("~/references/bibfile.bib"))
     ;;(citar-open-entry-function #'citar-open-entry-in-zotero)
     (citar-open-entry-function #'citar-open-entry-in-file)
-    (citar-library-paths '("~/references/pdfs" "~/references/pdfs/books"))
+    (citar-library-paths '("~/references/articles" "~/references/books"))
     :hook
     (LaTeX-mode . citar-capf-setup)
     (org-mode . citar-capf-setup))
-  (setq org-cite-global-bibliography '("~/references/pdfs/bibfile.bib"))
+  (setq org-cite-global-bibliography '("~/references/bibfile.bib"))
 
   (use-package citar-embark
     :after citar embark
@@ -707,17 +707,17 @@
   (setq citar-org-roam-capture-template-key "n")
 
   (use-package org-ref
-    :after (org-roam org)
-    :config
-    (setq org-ref-default-bibliography '("~/references/pdfs/bibfile.bib")
-          org-ref-pdf-directory "~/references/pdfs/"))
+    :after (org-roam org))
+    ;; :config
+    ;; (setq org-ref-default-bibliography '("~/references/bibfile.bib")
+    ;;       org-ref-pdf-directory "~/references/pdfs/"))
   (require 'doi-utils)
 
   (use-package bibtex-completion
     :after (org-roam org)
     :custom
-    (bibtex-completion-bibliography '("~/references/pdfs/bibfile.bib"))
-    (bibtex-completion-library-path '("~/references/pdfs"))
+    (bibtex-completion-bibliography '("~/references/bibfile.bib"))
+    (bibtex-completion-library-path '("~/references/articles" "~/references/books"))
     (bibtex-completion-notes-path "~/org/roam"))
 
   ;; Sci-hub
