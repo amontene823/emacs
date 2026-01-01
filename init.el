@@ -32,6 +32,13 @@
 (setq straight-use-package-by-default t)
 ;; (setq package-enable-at-startup nil)
 
+(straight-use-package 'use-package)
+
+(use-package envrc
+  :straight t
+  :config
+  (envrc-global-mode))
+
 (setq inhibit-startup-message t)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
@@ -40,8 +47,8 @@
 (menu-bar-mode -1)
 (setq visible-bell t)
 ;; fonts
-(set-face-attribute 'default nil :font "Fira Code Retina" :height 140 :weight 'medium)
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 140 :weight 'medium)
+(set-face-attribute 'default nil :font "Fira Code" :height 140 :weight 'medium)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 140 :weight 'medium)
 (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 140 :weight 'medium)
 (column-number-mode)
 (global-display-line-numbers-mode t)
