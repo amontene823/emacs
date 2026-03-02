@@ -520,24 +520,33 @@ Improves emacs startup time
 
 #+begin_src emacs-lisp
 
-    (use-package auctex
-      ;;:defer t
-      :hook ((LaTeX-mode . LaTeX-preview-setup)
-             (LaTeX-mode . turn-on-reftex)   ;; Enable RefTeX for cross-referencing
-             (LaTeX-mode . flyspell-mode)    ;; Enable Flyspell for spell checking
-             (LaTeX-mode . LaTeX-math-mode)) ;; Enable LaTeX Math mode
-      :init
-      (setq TeX-auto-save t)
-      (setq TeX-parse-self t)
-      (setq-default TeX-master nil)         ;; Ask for master file when opening a new TeX file
-      (setq TeX-PDF-mode t)
-      (setq TeX-view-program-selection '((output-pdf "Pscrollools"))
-            TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-            LaTeX-command-style '(("" "%(PDF)%(latex) --synctex=1 %(file-line-error) %(extraopts) %(output-dir) %S%(PDFout)")) ;; synctex for TeX from/to PDF jumping
+  (use-package auctex
+    :hook ((LaTeX-mode . LaTeX-preview-setup)
+           (LaTeX-mode . turn-on-reftex)
+           (LaTeX-mode . flyspell-mode)
+           (LaTeX-mode . LaTeX-math-mode))
+    :init
+    (setq TeX-auto-save t)
+    (setq TeX-parse-self t)
+    (setq-default TeX-master nil)
+    (setq TeX-PDF-mode t)
 
-            TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
-      (setq TeX-source-correlate-method 'synctex) ; enable synctex
-      (setq TeX-source-correlate-mode t)) ; enable text-source-correlate using synctex
+    ;; IMPORTANT: your PDF is in build/
+    (setq TeX-output-dir "build")
+    (setq TeX-auto-local "build/auto")
+
+    ;; SyncTeX
+    (setq TeX-source-correlate-method 'synctex)
+    (setq TeX-source-correlate-mode t)
+    (setq TeX-source-correlate-start-server t)
+
+    ;; If you use PDF Tools inside Emacs:
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+    (setq TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view)))
+
+    ;; Make sure LaTeX commands include synctex (latexmk already does, but this doesn't hurt)
+    (setq TeX-command-extra-options "-synctex=1 -interaction=nonstopmode -file-line-error")
+    )
 
   (defun my-custom-function ()
     "Automatically run `TeX-command-run-all` when a LaTeX file is saved."
@@ -545,19 +554,19 @@ Improves emacs startup time
 
   (defun add-latex-save-hook ()
     "Add a save hook to compile LaTeX files."
-    (add-hook 'after-save-hook 'my-custom-function nil t))  ;; Buffer-local hook
+    (add-hook 'after-save-hook #'my-custom-function nil t))
 
-  (add-hook 'LaTeX-mode-hook 'add-latex-save-hook)
+  (add-hook 'LaTeX-mode-hook #'add-latex-save-hook)
 
-    ;; (defun my-custom-function ()
-      ;; (TeX-command-run-all nil))
-    ;; (add-hook 'after-save-hook 'my-custom-function)
+  ;; (defun my-custom-function ()
+  ;; (TeX-command-run-all nil))
+  ;; (add-hook 'after-save-hook 'my-custom-function)
 
-    ;; (use-package latex-preview-pane
-    ;; :after auctex
-    ;; :config
-    ;; (latex-preview-pane-enable)
-    ;; :hook (LaTeX-mode . latex-preview-pane-mode))
+  ;; (use-package latex-preview-pane
+  ;; :after auctex
+  ;; :config
+  ;; (latex-preview-pane-enable)
+  ;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
 #+end_src
 * Org-Mode
