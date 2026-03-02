@@ -71,12 +71,23 @@ Improves emacs startup time
 *** direnv
 
 #+begin_src emacs-lisp
-  (straight-use-package 'use-package)
-
   (use-package envrc
-    :straight t
     :config
     (envrc-global-mode))
+
+  ;; (use-package direnv
+  ;;   :config
+  ;;   (direnv-mode))
+
+  ;; Use ./ .venv python for org-babel in buffers under that project.
+  ;; (defun angelo/org-babel-use-project-venv ()
+  ;;   (let* ((root (or (locate-dominating-file default-directory ".venv")
+  ;;                    default-directory))
+  ;;          (py (expand-file-name ".venv/bin/python" root)))
+  ;;     (when (file-executable-p py)
+  ;;       (setq-local org-babel-python-command py))))
+
+  ;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 #+end_src
 
 ** Look and Feel

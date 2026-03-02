@@ -32,12 +32,23 @@
 (setq straight-use-package-by-default t)
 ;; (setq package-enable-at-startup nil)
 
-(straight-use-package 'use-package)
-
 (use-package envrc
-  :straight t
   :config
   (envrc-global-mode))
+
+;; (use-package direnv
+;;   :config
+;;   (direnv-mode))
+
+;; Use ./ .venv python for org-babel in buffers under that project.
+;; (defun angelo/org-babel-use-project-venv ()
+;;   (let* ((root (or (locate-dominating-file default-directory ".venv")
+;;                    default-directory))
+;;          (py (expand-file-name ".venv/bin/python" root)))
+;;     (when (file-executable-p py)
+;;       (setq-local org-babel-python-command py))))
+
+;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 
 (setq inhibit-startup-message t)
 (scroll-bar-mode -1)
