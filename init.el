@@ -35,6 +35,8 @@
 (use-package envrc
   :config
   (envrc-global-mode))
+;; Don't run direnv/envrc inside org-src edit buffers (org-edit-special)
+(add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
 
 ;; (use-package direnv
 ;;   :config
@@ -1019,7 +1021,7 @@
 
 (defun uv-activate ()
   "Activate Python environment managed by uv based on current project directory.
-    Looks for .venv directory in project root and activates the Python interpreter."
+      Looks for .venv directory in project root and activates the Python interpreter."
   (interactive)
   (let* ((project-root (project-root (project-current t)))
          (venv-path (expand-file-name ".venv" project-root))
@@ -1069,25 +1071,32 @@
 ;;                 display-buffer-at-bottom)
 ;;                (window-height . 0.25)))
 
-(add-hook
- 'python-ts-mode-hook
- (lambda ()
-   (uv-activate)
-   (eglot-ensure)
-   ;; (when (get-buffer "*Python*")
-   ;; (kill-buffer "*Python*"))
-   (run-python)))
+;; (add-hook
+;;  'python-ts-mode-hook
+;;  (lambda ()
+;;    (uv-activate)
+;;    (eglot-ensure)
+;;    ;; (when (get-buffer "*Python*")
+;;    ;; (kill-buffer "*Python*"))
+;;    (run-python)))
+(defun am/python-project-setup ()
+  "Heavy Python setup for real files, not org-src edit buffers."
+  (unless (bound-and-true-p org-src-mode)
+    (uv-activate)
+    (eglot-ensure)
+    (run-python)))
 
+(add-hook 'python-ts-mode-hook #'am/python-project-setup)
 ;; (use-package apheleia
-  ;; :defines (apheleia-formatters apheleia-mode-alist)
-  ;; :hook (after-init . apheleia-global-mode)
-  ;; :config
-  ;; Use 'ruff' instead of 'black'. Remove 'ruff-isort' when 'ruff format'
-  ;; supports it.
-  ;; Check - https://docs.astral.sh/ruff/formatter/#sorting-imports
-  ;; https://github.com/astral-sh/ruff/issues/8232
-  ;; (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
-  ;; (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
+;; :defines (apheleia-formatters apheleia-mode-alist)
+;; :hook (after-init . apheleia-global-mode)
+;; :config
+;; Use 'ruff' instead of 'black'. Remove 'ruff-isort' when 'ruff format'
+;; supports it.
+;; Check - https://docs.astral.sh/ruff/formatter/#sorting-imports
+;; https://github.com/astral-sh/ruff/issues/8232
+;; (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
+;; (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
 ;; (use-package lazy-ruff
 ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
