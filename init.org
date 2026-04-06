@@ -103,9 +103,9 @@ Improves emacs startup time
   (menu-bar-mode -1)
   (setq visible-bell t)
   ;; fonts
-  (set-face-attribute 'default nil :font "Fira Code" :height 140 :weight 'medium)
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height 140 :weight 'medium)
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height 140 :weight 'medium)
+  (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
+  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
+  (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
   (column-number-mode)
   (global-display-line-numbers-mode t)
   ;; Disable line numbers for some modes
@@ -122,8 +122,7 @@ Improves emacs startup time
   ;; doom
   (use-package doom-themes)
   :config
-  ;; (load-theme 'doom-1337 t)
-  (load-theme 'modus-operandi t)
+  (load-theme 'doom-tokyo-night t)
   (use-package doom-modeline
     :custom (doom-modeline-height 15)
     :config (doom-modeline-mode 1))
@@ -490,7 +489,7 @@ Improves emacs startup time
     (marginalia-mode))
 
   (use-package embark
-    :bind
+    :bind*
     (("C-;" . embark-dwim)        ;; good alternative: M-.
      ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
     :init
@@ -588,7 +587,7 @@ Improves emacs startup time
                         (org-level-6 . 1.0)
                         (org-level-7 . 1.0)
                         (org-level-8 . 1.0)))
-          (set-face-attribute (car face) nil :font "Cantarell" :weight 'bold :height (cdr face)))
+          (set-face-attribute (car face) nil :font "Inter" :weight 'bold :height (cdr face)))
         ;; Ensure that anything that should be fixed-pitch in Org files appears that way
         (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
         (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
@@ -1107,7 +1106,8 @@ There are 112 pdf files in this directory
   (use-package org-download
     :config
     (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
-    (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
+    ;; (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
+    (setq org-download-screenshot-method "grim -g \"$(slurp)\" %s")
     (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
     (org-download-enable))  
 
