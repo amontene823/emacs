@@ -156,6 +156,8 @@ Improves emacs startup time
     (setq evil-want-keybinding nil)
     (setq evil-want-C-u-scroll t)
     (setq evil-want-C-i-jump nil)
+    (setq evil-split-window-below t)
+    (setq evil-vsplit-window-right t)
     :config
     (evil-mode 1)
     ;;(define-key evil-normal-state-map (kbd "C-.") nil)
@@ -1217,64 +1219,73 @@ There are 112 pdf files in this directory
 **  Spacemacs
 #+begin_src emacs-lisp
 
-    (use-package general
-      :config
-      (general-create-definer am/leader-keys
-        :keymaps '(normal insert visual emacs)
-        :prefix "SPC"
-        :global-prefix "C-SPC")
-      (general-define-key ;; evil overrides
-       :states '(normal visual)
-       :keymaps 'global-map
-       "C-f" 'consult-ripgrep
-       "C-." 'embark-act
-       "C-i" 'evil-jump-forward)
-      (am/leader-keys
-        "b"  '(:ignore b :which-key "Buffer")
-        "bb" '(next-buffer :which-key "Next")
-        "bn" '(next-buffer :which-key "Next")
-        "bp" '(previous-buffer :which-key "Previous")
-        "bN" '(previous-buffer :which-key "Previous")
-        "bl" '(consult-buffer :which-key "Switch")
-        "bk" '(kill-buffer :which-key Kill)
+  (use-package general
+    :config
+    (general-create-definer am/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC")
+    (general-define-key ;; evil overrides
+     :states '(normal visual)
+     :keymaps 'global-map
+     "C-f" 'consult-ripgrep
+     "C-." 'embark-act
+     "C-i" 'evil-jump-forward)
+    (am/leader-keys
+      "b"  '(:ignore b :which-key "Buffer")
+      "bb" '(next-buffer :which-key "Next")
+      "bn" '(next-buffer :which-key "Next")
+      "bp" '(previous-buffer :which-key "Previous")
+      "bN" '(previous-buffer :which-key "Previous")
+      "bl" '(consult-buffer :which-key "Switch")
+      "bk" '(kill-buffer :which-key Kill)
 
-        "w"  '(:ignore w :which-key "Window")
-        "ww" '(evil-window-next :which-key "Next")
-        "wn" '(evil-window-next :which-key "Next")
-        "wN" '(evil-window-prev :which-key "Previous")
-        "ws" '(evil-window-split :which-key "Horizontal Split")
-        "wv" '(evil-window-vsplit :which-key "Vertical Split")
-        "wc" '(evil-window-delete :which-key "Close")
-        "wo" '(delete-other-windows :which-key "Close Others")
+      "w"  '(:ignore w :which-key "Window")
+      "ww" '(evil-window-next :which-key "Next")
+      "wn" '(evil-window-next :which-key "Next")
+      "wN" '(evil-window-prev :which-key "Previous")
+      "wh" '(evil-window-left :which-key "Focus Left")
+      "wj" '(evil-window-down :which-key "Focus Down")
+      "wk" '(evil-window-up :which-key "Focus Up")
+      "wl" '(evil-window-right :which-key "Focus Right")
+      "wH" '(evil-window-decrease-width :which-key "Shrink Width")
+      "wJ" '(evil-window-increase-height :which-key "Grow Height")
+      "wK" '(evil-window-decrease-height :which-key "Shrink Height")
+      "wL" '(evil-window-increase-width :which-key "Grow Width")
+      "ws" '(evil-window-split :which-key "Horizontal Split")
+      "wv" '(evil-window-vsplit :which-key "Vertical Split")
+      "wc" '(evil-window-delete :which-key "Close")
+      "wo" '(delete-other-windows :which-key "Close Others")
 
-        ":" '(execute-extended-command :which-key "M-x")
 
-        "h"  '(:ignore h :which-key "Help")
-        "hv" '(describe-variable :which-key "Describe Variable")
-        "hf" '(describe-function :which-key "Describe Function")
-        "hi" '(indent-region :which-key "Indent Region")
-        "hs" '(describe-symbol :which-key "Describe Symbol")
-        "hm" '(describe-mode :which-key "Describe Mode")
-        "hk" '(describe-key :which-key "Describe Key")
+      ":" '(execute-extended-command :which-key "M-x")
 
-        "f"  '(:ignore f :which-key "Files")
-        "fr" '(consult-recent-file :which-key "Recent Files")
-        "ff" '(find-file :which-key "Find File")
+      "h"  '(:ignore h :which-key "Help")
+      "hv" '(describe-variable :which-key "Describe Variable")
+      "hf" '(describe-function :which-key "Describe Function")
+      "hi" '(indent-region :which-key "Indent Region")
+      "hs" '(describe-symbol :which-key "Describe Symbol")
+      "hm" '(describe-mode :which-key "Describe Mode")
+      "hk" '(describe-key :which-key "Describe Key")
 
-        "l"  '(:ignore l :which-key "Latex")
-        "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
+      "f"  '(:ignore f :which-key "Files")
+      "fr" '(consult-recent-file :which-key "Recent Files")
+      "ff" '(find-file :which-key "Find File")
 
-        "o"  '(:ignore o :which-key "org")
-        "ot" '(org-babel-tangle :which-key "Tangle")
-        "of" '(org-roam-node-find :which-key "Find Node")
-        "od" '(org-toggle-inline-images :which-key "Toggle Images")
-        "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
-        "oe" '(org-edit-special :which-key "org Edit Special")
+      "l"  '(:ignore l :which-key "Latex")
+      "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
 
-        "c"  '(:ignore c :which-key "Citations")
-        "ci" '(citar-insert-citation :which-key "insert-citation")
-        "ce" '(citar-open-entry :which-key "open-entry")
-        ))
+      "o"  '(:ignore o :which-key "org")
+      "ot" '(org-babel-tangle :which-key "Tangle")
+      "of" '(org-roam-node-find :which-key "Find Node")
+      "od" '(org-toggle-inline-images :which-key "Toggle Images")
+      "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
+      "oe" '(org-edit-special :which-key "org Edit Special")
+
+      "c"  '(:ignore c :which-key "Citations")
+      "ci" '(citar-insert-citation :which-key "insert-citation")
+      "ce" '(citar-open-entry :which-key "open-entry")
+      ))
 #+end_src
 
 * Programming

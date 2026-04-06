@@ -102,6 +102,8 @@
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
+  (setq evil-split-window-below t)
+  (setq evil-vsplit-window-right t)
   :config
   (evil-mode 1)
   ;;(define-key evil-normal-state-map (kbd "C-.") nil)
@@ -929,10 +931,19 @@
     "ww" '(evil-window-next :which-key "Next")
     "wn" '(evil-window-next :which-key "Next")
     "wN" '(evil-window-prev :which-key "Previous")
+    "wh" '(evil-window-left :which-key "Focus Left")
+    "wj" '(evil-window-down :which-key "Focus Down")
+    "wk" '(evil-window-up :which-key "Focus Up")
+    "wl" '(evil-window-right :which-key "Focus Right")
+    "wH" '(evil-window-decrease-width :which-key "Shrink Width")
+    "wJ" '(evil-window-increase-height :which-key "Grow Height")
+    "wK" '(evil-window-decrease-height :which-key "Shrink Height")
+    "wL" '(evil-window-increase-width :which-key "Grow Width")
     "ws" '(evil-window-split :which-key "Horizontal Split")
     "wv" '(evil-window-vsplit :which-key "Vertical Split")
     "wc" '(evil-window-delete :which-key "Close")
     "wo" '(delete-other-windows :which-key "Close Others")
+
 
     ":" '(execute-extended-command :which-key "M-x")
 
