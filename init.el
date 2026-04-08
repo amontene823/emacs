@@ -1209,9 +1209,15 @@
   (add-to-list 'org-src-lang-modes '("C"   . c))
   (add-to-list 'org-src-lang-modes '("cpp" . c++)))
 
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+
 (defun uv-activate ()
-  "Activate Python environment managed by uv based on current project directory.
-      Looks for .venv directory in project root and activates the Python interpreter."
+  "Activate Python environment managed by uv based on current project directory."
   (interactive)
   (let* ((project-root (project-root (project-current t)))
          (venv-path (expand-file-name ".venv" project-root))
@@ -1221,42 +1227,26 @@
                          "bin/python")
                        venv-path)))
     (if (file-exists-p python-path)
-        (progn
-          ;; Set Python interpreter path
+        (unless (equal (getenv "VIRTUAL_ENV") venv-path)
           (setq python-shell-interpreter python-path)
-
-          ;; Update exec-path to include the venv's bin directory
           (let ((venv-bin-dir (file-name-directory python-path)))
             (setq exec-path (cons venv-bin-dir
                                   (remove venv-bin-dir exec-path))))
-
-          ;; Update PATH environment variable
           (setenv "PATH" (concat (file-name-directory python-path)
                                  path-separator
                                  (getenv "PATH")))
-
-          ;; Update VIRTUAL_ENV environment variable
           (setenv "VIRTUAL_ENV" venv-path)
-
-          ;; Remove PYTHONHOME if it exists
           (setenv "PYTHONHOME" nil)
-
           (message "Activated UV Python environment at %s" venv-path))
       (error "No UV Python environment found in %s" project-root))))
 
-(use-package treesit-auto
-  :custom
-  (treesit-auto-install 'prompt)
-  :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
-
 (defun am/python-project-setup ()
-  "Heavy Python setup for real files, not org-src edit buffers."
-  (unless (bound-and-true-p org-src-mode)
+  (when (and buffer-file-name
+             (string-match-p "\\.py\\'" buffer-file-name))
     (uv-activate)
     (eglot-ensure)
-    (run-python)))
+    (unless (python-shell-get-process)
+      (run-python))))
 
 (add-hook 'python-ts-mode-hook #'am/python-project-setup)
 ;; (use-package apheleia
