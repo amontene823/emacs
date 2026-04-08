@@ -122,161 +122,161 @@ Improves emacs startup time
 *** Look and Feel
 #+begin_src emacs-lisp
 
-  (setq user-full-name "Angelo Montenegro"
-        user-mail-address "amontene823@gmail.com")
-  ;; dont pop up the warnings buffer during async native compilation
-  (setq native-comp-async-report-warnings-errors 'silent)
-  ;; quit emacs directly, even if there are running processes
-  (setq confirm-kill-processes nil)
+    (setq user-full-name "Angelo Montenegro"
+          user-mail-address "amontene823@gmail.com")
+    ;; dont pop up the warnings buffer during async native compilation
+    (setq native-comp-async-report-warnings-errors 'silent)
+    ;; quit emacs directly, even if there are running processes
+    (setq confirm-kill-processes nil)
 
-  ;;
-  (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
-  ;; create the savefile dir if it doesn't exist
-  (unless (file-exists-p angelo-savefile-dir)
-    (make-directory angelo-savefile-dir))
-  (use-package saveplace
+    ;;
+    (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
+    ;; create the savefile dir if it doesn't exist
+    (unless (file-exists-p angelo-savefile-dir)
+      (make-directory angelo-savefile-dir))
+    (use-package saveplace
+      :config
+      (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
+      ;; activate it for all buffers
+      (save-place-mode +1))
+
+    ;; remove toolbar
+    (when (fboundp 'tool-bar-mode)
+      (tool-bar-mode -1))
+    (setq inhibit-startup-message t)
+    (setq inhibit-startup-screen t)
+    (blink-cursor-mode -1)
+    (scroll-bar-mode -1)
+    (tool-bar-mode -1)
+    (tooltip-mode -1)
+    (set-fringe-mode 10)
+    (menu-bar-mode -1)
+    (setq use-short-answers t)
+    (setq visible-bell t)
+    ;; nice scrolling
+    (setq scroll-margin 0
+          scroll-conservatively 100000
+          scroll-preserve-screen-position 1)
+    (when (fboundp 'pixel-scroll-precision-mode)
+      (pixel-scroll-precision-mode t))
+
+    ;; wrapped lines respect the indentation of the original line
+    (global-visual-wrap-prefix-mode 1)
+    ;; Proportional window resizing
+    (setq window-combination-resize t)
+    ;; highlight the current error in compilation/grep buffers
+    (setq next-error-message-highlight t)
+
+    (winner-mode +1)
+    (defun toggle-delete-other-windows ()
+      "Delete other windows in frame if any, or restore previous window config."
+      (interactive)
+      (if (and winner-mode
+               (equal (selected-window) (next-window)))
+          (winner-undo)
+        (delete-other-windows)))
+    ;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
+    ;; maximize the initial frame automatically
+    (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+    ;; more useful frame title, that show either a file or a
+    ;; buffer name (if the buffer isn't visiting a file)
+    (setq frame-title-format
+          '((:eval (if (buffer-file-name)
+                       (abbreviate-file-name (buffer-file-name))
+                     "%b"))))
+    ;; Emacs modes typically provide a standard means to change the
+    ;; indentation width -- eg. c-basic-offset: use that to adjust your
+    ;; personal indentation width, while maintaining the style (and
+    ;; meaning) of any files you load.
+    (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
+    (setq-default tab-width 8)            ;; but maintain correct appearance
+    ;; Newline at end of file
+    (setq require-final-newline t)
+    ;; Wrap lines at 80 characters
+    (setq-default fill-column 80)
+
+    ;; fonts
+    (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
+    (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
+    (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
+    (column-number-mode)
+    (global-display-line-numbers-mode t)
+    ;; Disable line numbers for some modes
+    (defun disable-line-numbers ()
+      "Hook to disable line-number-mode"
+      (display-line-numbers-mode 0))
+    (dolist (hook `(org-mode-hook
+                    term-mode-hook
+                    shell-mode-hook
+                    eshell-mode-hook
+                    pdf-view-mode-hook))
+      (add-hook hook #'disable-line-numbers))
+
+    ;; doom
+    (use-package doom-themes)
     :config
-    (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
-    ;; activate it for all buffers
-    (save-place-mode +1))
+    (load-theme 'doom-tokyo-night t)
+    (use-package doom-modeline
+      :custom (doom-modeline-height 15)
+      :config (doom-modeline-mode 1))
 
-  ;; remove toolbar
-  (when (fboundp 'tool-bar-mode)
-    (tool-bar-mode -1))
-  (setq inhibit-startup-message t)
-  (setq inhibit-startup-screen t)
-  (blink-cursor-mode -1)
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (tooltip-mode -1)
-  (set-fringe-mode 10)
-  (menu-bar-mode -1)
-  (setq use-short-answers t)
-  (setq visible-bell t)
-  ;; nice scrolling
-  (setq scroll-margin 0
-        scroll-conservatively 100000
-        scroll-preserve-screen-position 1)
-  (when (fboundp 'pixel-scroll-precision-mode)
-    (pixel-scroll-precision-mode t))
+    ;; rainbow parantheses
+    (use-package rainbow-delimiters
+      :hook (prog-mode . rainbow-delimiters-mode))
 
-  ;; wrapped lines respect the indentation of the original line
-  (global-visual-wrap-prefix-mode 1)
-  ;; Proportional window resizing
-  (setq window-combination-resize t)
-  ;; highlight the current error in compilation/grep buffers
-  (setq next-error-message-highlight t)
+    (use-package all-the-icons)
 
-  (winner-mode +1)
-  (defun toggle-delete-other-windows ()
-    "Delete other windows in frame if any, or restore previous window config."
-    (interactive)
-    (if (and winner-mode
-             (equal (selected-window) (next-window)))
-        (winner-undo)
-      (delete-other-windows)))
-  ;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
-  ;; maximize the initial frame automatically
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-  ;; more useful frame title, that show either a file or a
-  ;; buffer name (if the buffer isn't visiting a file)
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b"))))
-  ;; Emacs modes typically provide a standard means to change the
-  ;; indentation width -- eg. c-basic-offset: use that to adjust your
-  ;; personal indentation width, while maintaining the style (and
-  ;; meaning) of any files you load.
-  (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
-  (setq-default tab-width 8)            ;; but maintain correct appearance
-  ;; Newline at end of file
-  (setq require-final-newline t)
-  ;; Wrap lines at 80 characters
-  (setq-default fill-column 80)
+    ;; diminish - hide minor modes from the mode line
+    (use-package diminish
+      :config
+      (diminish 'abbrev-mode)
+      (diminish 'flyspell-mode)
+      (diminish 'flyspell-prog-mode)
+      (diminish 'eldoc-mode))
 
-  ;; fonts
-  (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
-  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
-  (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
-  (column-number-mode)
-  (global-display-line-numbers-mode t)
-  ;; Disable line numbers for some modes
-  (defun disable-line-numbers ()
-    "Hook to disable line-number-mode"
-    (display-line-numbers-mode 0))
-  (dolist (hook `(org-mode-hook
-                  term-mode-hook
-                  shell-mode-hook
-                  eshell-mode-hook
-                  pdf-view-mode-hook))
-    (add-hook hook #'disable-line-numbers))
-
-  ;; doom
-  (use-package doom-themes)
-  :config
-  (load-theme 'doom-tokyo-night t)
-  (use-package doom-modeline
-    :custom (doom-modeline-height 15)
-    :config (doom-modeline-mode 1))
-
-  ;; rainbow parantheses
-  (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
-
-  (use-package all-the-icons)
-
-  ;; diminish - hide minor modes from the mode line
-  (use-package diminish
-    :config
-    (diminish 'abbrev-mode)
-    (diminish 'flyspell-mode)
-    (diminish 'flyspell-prog-mode)
-    (diminish 'eldoc-mode))
-
-  ;; store all backup and autosave files in the tmp dir
-  (setq backup-directory-alist
-        `((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-        `((".*" ,temporary-file-directory t)))
-  (use-package undo-tree
-    :config
-    ;; autosave the undo-tree history
-    (setq undo-tree-history-directory-alist
+    ;; store all backup and autosave files in the tmp dir
+    (setq backup-directory-alist
           `((".*" . ,temporary-file-directory)))
-    (setq undo-tree-auto-save-history t)
-    (global-undo-tree-mode +1)
-    (diminish 'undo-tree-mode))
+    (setq auto-save-file-name-transforms
+          `((".*" ,temporary-file-directory t)))
+    (use-package undo-tree
+      :config
+      ;; autosave the undo-tree history
+      (setq undo-tree-history-directory-alist
+            `((".*" . ,temporary-file-directory)))
+      (setq undo-tree-auto-save-history t)
+      (global-undo-tree-mode +1)
+      (diminish 'undo-tree-mode))
 
-  ;; revert buffers automatically when underlying files are changed externally
-  (setq auto-revert-avoid-polling t)
-  (global-auto-revert-mode t)
+    ;; revert buffers automatically when underlying files are changed externally
+    (setq auto-revert-avoid-polling t)
+    (global-auto-revert-mode t)
 
-  ;; make it possible to navigate to the C source of Emacs functions
-  (setq find-function-C-source-directory "~/projects/emacs")
+    ;; make it possible to navigate to the C source of Emacs functions
+    (setq find-function-C-source-directory "~/projects/emacs")
 
-  (use-package paren
-    :config
-    (show-paren-mode +1)
-    ;; show matching paren context when it's offscreen
-    (setq show-paren-context-when-offscreen 'overlay))
+    (use-package paren
+      :config
+      (show-paren-mode +1)
+      ;; show matching paren context when it's offscreen
+      (setq show-paren-context-when-offscreen 'overlay))
 
-  (use-package elec-pair
-    :config
-    (electric-pair-mode +1))
+    (use-package elec-pair
+      :config
+      (electric-pair-mode +1))
 
-  (use-package whitespace
-    :init
-    (add-hook 'prog-mode-hook #'whitespace-mode)
-    (add-hook 'before-save-hook #'whitespace-cleanup)
-    :config
-    (setq whitespace-line-column 80)
-    (setq whitespace-style '(face tabs empty trailing lines-tail)))
+    (use-package whitespace
+      :init
+      (add-hook 'prog-mode-hook #'whitespace-mode)
+      (add-hook 'before-save-hook #'whitespace-cleanup)
+      :config
+      (setq whitespace-line-column 80)
+      (setq whitespace-style '(face tabs empty trailing lines-tail)))
 
-  (use-package rainbow-mode
-    :config
-    (add-hook 'prog-mode-hook #'rainbow-mode)
-    (diminish 'rainbow-mode))
+    (use-package rainbow-mode
+      :config
+      (add-hook 'prog-mode-hook #'rainbow-mode)
+      (diminish 'rainbow-mode))
 
   (use-package treemacs
     :defer t
@@ -295,7 +295,6 @@ Improves emacs startup time
 ** Globals
 #+begin_src emacs-lisp
 
-  (global-unset-key (kbd "C-/"))
   ;; Make ESC quit prompts
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
@@ -334,12 +333,15 @@ Improves emacs startup time
     :config
     (evil-collection-init))
 
-  (use-package evil-nerd-commenter
+  (use-package evil-commentary
     :after evil
-    :bind
-    (("C-/" . evilnc-comment-or-uncomment-lines)))
+    :config
+    (evil-commentary-mode))
 
 #+end_src
+
+#+RESULTS:
+: t
 
 * Packages
 ** FlySpell
