@@ -76,160 +76,162 @@
 ;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 
 (setq user-full-name "Angelo Montenegro"
-        user-mail-address "amontene823@gmail.com")
-  ;; dont pop up the warnings buffer during async native compilation
-  (setq native-comp-async-report-warnings-errors 'silent)
-  ;; quit emacs directly, even if there are running processes
-  (setq confirm-kill-processes nil)
+      user-mail-address "amontene823@gmail.com")
+;; dont pop up the warnings buffer during async native compilation
+(setq native-comp-async-report-warnings-errors 'silent)
+;; quit emacs directly, even if there are running processes
+(setq confirm-kill-processes nil)
 
-  ;;
-  (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
-  ;; create the savefile dir if it doesn't exist
-  (unless (file-exists-p angelo-savefile-dir)
-    (make-directory angelo-savefile-dir))
-  (use-package saveplace
-    :config
-    (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
-    ;; activate it for all buffers
-    (save-place-mode +1))
-
-  ;; remove toolbar
-  (when (fboundp 'tool-bar-mode)
-    (tool-bar-mode -1))
-  (setq inhibit-startup-message t)
-  (setq inhibit-startup-screen t)
-  (blink-cursor-mode -1)
-  (scroll-bar-mode -1)
-  (tool-bar-mode -1)
-  (tooltip-mode -1)
-  (set-fringe-mode 10)
-  (menu-bar-mode -1)
-  (setq use-short-answers t)
-  (setq visible-bell t)
-  ;; nice scrolling
-  (setq scroll-margin 0
-        scroll-conservatively 100000
-        scroll-preserve-screen-position 1)
-  (when (fboundp 'pixel-scroll-precision-mode)
-    (pixel-scroll-precision-mode t))
-
-  ;; wrapped lines respect the indentation of the original line
-  (global-visual-wrap-prefix-mode 1)
-  ;; Proportional window resizing
-  (setq window-combination-resize t)
-  ;; highlight the current error in compilation/grep buffers
-  (setq next-error-message-highlight t)
-
-  (winner-mode +1)
-  (defun toggle-delete-other-windows ()
-    "Delete other windows in frame if any, or restore previous window config."
-    (interactive)
-    (if (and winner-mode
-             (equal (selected-window) (next-window)))
-        (winner-undo)
-      (delete-other-windows)))
-  ;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
-  ;; maximize the initial frame automatically
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-  ;; more useful frame title, that show either a file or a
-  ;; buffer name (if the buffer isn't visiting a file)
-  (setq frame-title-format
-        '((:eval (if (buffer-file-name)
-                     (abbreviate-file-name (buffer-file-name))
-                   "%b"))))
-  ;; Emacs modes typically provide a standard means to change the
-  ;; indentation width -- eg. c-basic-offset: use that to adjust your
-  ;; personal indentation width, while maintaining the style (and
-  ;; meaning) of any files you load.
-  (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
-  (setq-default tab-width 8)            ;; but maintain correct appearance
-  ;; Newline at end of file
-  (setq require-final-newline t)
-  ;; Wrap lines at 80 characters
-  (setq-default fill-column 80)
-
-  ;; fonts
-  (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
-  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
-  (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
-  (column-number-mode)
-  (global-display-line-numbers-mode t)
-  ;; Disable line numbers for some modes
-  (defun disable-line-numbers ()
-    "Hook to disable line-number-mode"
-    (display-line-numbers-mode 0))
-  (dolist (hook `(org-mode-hook
-                  term-mode-hook
-                  shell-mode-hook
-                  eshell-mode-hook
-                  pdf-view-mode-hook))
-    (add-hook hook #'disable-line-numbers))
-
-  ;; doom
-  (use-package doom-themes)
+;;
+(defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
+;; create the savefile dir if it doesn't exist
+(unless (file-exists-p angelo-savefile-dir)
+  (make-directory angelo-savefile-dir))
+(use-package saveplace
   :config
-  (load-theme 'doom-tokyo-night t)
-  (use-package doom-modeline
-    :custom (doom-modeline-height 15)
-    :config (doom-modeline-mode 1))
+  (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
+  ;; activate it for all buffers
+  (save-place-mode +1))
 
-  ;; rainbow parantheses
-  (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
+;; remove toolbar
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
+(setq inhibit-startup-message t)
+(setq inhibit-startup-screen t)
+(blink-cursor-mode -1)
+(scroll-bar-mode -1)
+(tool-bar-mode -1)
+(tooltip-mode -1)
+(set-fringe-mode 10)
+(menu-bar-mode -1)
+(setq use-short-answers t)
+(setq visible-bell t)
+;; nice scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
 
-  (use-package all-the-icons)
+;; wrapped lines respect the indentation of the original line
+(global-visual-wrap-prefix-mode 1)
+;; Proportional window resizing
+(setq window-combination-resize t)
+;; highlight the current error in compilation/grep buffers
+(setq next-error-message-highlight t)
 
-  ;; diminish - hide minor modes from the mode line
-  (use-package diminish
-    :config
-    (diminish 'abbrev-mode)
-    (diminish 'flyspell-mode)
-    (diminish 'flyspell-prog-mode)
-    (diminish 'eldoc-mode))
+(winner-mode +1)
+(defun toggle-delete-other-windows ()
+  "Delete other windows in frame if any, or restore previous window config."
+  (interactive)
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
+;; maximize the initial frame automatically
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+;; more useful frame title, that show either a file or a
+;; buffer name (if the buffer isn't visiting a file)
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
+;; Emacs modes typically provide a standard means to change the
+;; indentation width -- eg. c-basic-offset: use that to adjust your
+;; personal indentation width, while maintaining the style (and
+;; meaning) of any files you load.
+(setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
+(setq-default tab-width 8)            ;; but maintain correct appearance
+;; Newline at end of file
+(setq require-final-newline t)
+;; Wrap lines at 80 characters
+(setq-default fill-column 80)
 
-  ;; store all backup and autosave files in the tmp dir
-  (setq backup-directory-alist
-        `((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-        `((".*" ,temporary-file-directory t)))
-  (use-package undo-tree
-    :config
-    ;; autosave the undo-tree history
-    (setq undo-tree-history-directory-alist
-          `((".*" . ,temporary-file-directory)))
-    (setq undo-tree-auto-save-history t)
-    (global-undo-tree-mode +1)
-    (diminish 'undo-tree-mode))
+;; fonts
+(set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
+(set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
+(set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
+(column-number-mode)
+(global-display-line-numbers-mode t)
+;; Disable line numbers for some modes
+(defun disable-line-numbers ()
+  "Hook to disable line-number-mode"
+  (display-line-numbers-mode 0))
+(dolist (hook `(org-mode-hook
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook
+                pdf-view-mode-hook))
+  (add-hook hook #'disable-line-numbers))
 
-  ;; revert buffers automatically when underlying files are changed externally
-  (setq auto-revert-avoid-polling t)
-  (global-auto-revert-mode t)
+;; doom
+(use-package doom-themes
+  :config
+  (load-theme 'doom-tokyo-night t))
+(use-package doom-modeline
+  :custom (doom-modeline-height 15)
+  :config (doom-modeline-mode 1))
 
-  ;; make it possible to navigate to the C source of Emacs functions
-  (setq find-function-C-source-directory "~/projects/emacs")
+;; rainbow parantheses
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
 
-  (use-package paren
-    :config
-    (show-paren-mode +1)
-    ;; show matching paren context when it's offscreen
-    (setq show-paren-context-when-offscreen 'overlay))
+(use-package all-the-icons)
 
-  (use-package elec-pair
-    :config
-    (electric-pair-mode +1))
+;; diminish - hide minor modes from the mode line
+(use-package diminish
+  :config
+  (diminish 'abbrev-mode)
+  (diminish 'flyspell-mode)
+  (diminish 'flyspell-prog-mode)
+  (diminish 'eldoc-mode))
 
-  (use-package whitespace
-    :init
-    (add-hook 'prog-mode-hook #'whitespace-mode)
-    (add-hook 'before-save-hook #'whitespace-cleanup)
-    :config
-    (setq whitespace-line-column 80)
-    (setq whitespace-style '(face tabs empty trailing lines-tail)))
+;; store all backup and autosave files in the tmp dir
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+;; (use-package undo-tree
+;;   :config
+;;   ;; autosave the undo-tree history
+;;   (setq undo-tree-history-directory-alist
+;;         `((".*" . ,temporary-file-directory)))
+;;   (setq undo-tree-auto-save-history t)
+;;   (global-undo-tree-mode +1)
+;;   (diminish 'undo-tree-mode))
 
-  (use-package rainbow-mode
-    :config
-    (add-hook 'prog-mode-hook #'rainbow-mode)
-    (diminish 'rainbow-mode))
+;; revert buffers automatically when underlying files are changed externally
+(setq auto-revert-avoid-polling t)
+(global-auto-revert-mode t)
+
+;; make it possible to navigate to the C source of Emacs functions
+(setq find-function-C-source-directory "~/projects/emacs")
+
+(use-package paren
+  :config
+  (show-paren-mode +1)
+  ;; show matching paren context when it's offscreen
+  (setq show-paren-context-when-offscreen 'overlay))
+
+(use-package elec-pair
+  :config
+  (electric-pair-mode +1))
+
+(use-package whitespace
+  :init
+  (add-hook 'prog-mode-hook #'whitespace-mode)
+  (add-hook 'prog-mode-hook
+            (lambda ()
+              (add-hook 'before-save-hook #'whitespace-cleanup nil t)))
+  :config
+  (setq whitespace-line-column 80)
+  (setq whitespace-style '(face tabs empty trailing lines-tail)))
+
+(use-package rainbow-mode
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-mode)
+  (diminish 'rainbow-mode))
 
 (use-package treemacs
   :defer t
@@ -239,8 +241,8 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
-(use-package treemacs-projectile
-  :after (treemacs projectile))
+;; (use-package treemacs-projectile
+;;   :after (treemacs projectile))
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -284,7 +286,7 @@
   (add-hook hook (lambda () (flyspell-mode 1))))
 
 (when (eq system-type 'darwin) ;; Check if the OS is macOS
-  (eval-after-load "flyspell"
+  (with-eval-after-load "flyspell"
     '(progn
        (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
        (define-key flyspell-mouse-map [mouse-3] #'undefined))))
@@ -390,6 +392,11 @@
   (corfu-popupinfo-mode)
   (corfu-history-mode)
   )
+
+(use-package cape
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
 (use-package emacs
   :straight (:type built-in)
@@ -698,167 +705,158 @@
 (setq dired-recursive-copies 'always)
 
 (defun am/org-font-setup ()
-    ;; Replace list hyphen with dot
-    ;; (font-lock-add-keywords 'org-mode
-    ;; '(("^ *\\([-]\\) "
-    ;; (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-    ;; Set faces for heading levels
-    (dolist (face '((org-level-1 . 1.6)
-                    (org-level-2 . 1.4)
-                    (org-level-3 . 1.2)
-                    (org-level-4 . 1.0)
-                    (org-level-5 . 1.0)
-                    (org-level-6 . 1.0)
-                    (org-level-7 . 1.0)
-                    (org-level-8 . 1.0)))
-      (set-face-attribute (car face) nil :font "Inter" :weight 'bold :height (cdr face)))
-    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-    (set-face-attribute 'org-block nil :foreground 'unspecified :inherit 'fixed-pitch)
-    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-column nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-column-title nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+  ;; Replace list hyphen with dot
+  ;; (font-lock-add-keywords 'org-mode
+  ;; '(("^ *\\([-]\\) "
+  ;; (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.6)
+                  (org-level-2 . 1.4)
+                  (org-level-3 . 1.2)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.0)
+                  (org-level-6 . 1.0)
+                  (org-level-7 . 1.0)
+                  (org-level-8 . 1.0)))
+    (set-face-attribute (car face) nil :font "Inter" :weight 'bold :height (cdr face)))
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground 'unspecified :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-column nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-column-title nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-  (defun am/org-setup()
-    ;; Add frame borders and window dividers
-    (modify-all-frames-parameters
-     '((right-divider-width . 40)
-       (internal-border-width . 40)))
-    (dolist (face '(window-divider
-                    window-divider-first-pixel
-                    window-divider-last-pixel))
-      (face-spec-reset-face face)
-      (set-face-foreground face (face-attribute 'default :background)))
-    (set-face-background 'fringe (face-attribute 'default :background))
+(defun am/org-setup()
+  ;; Add frame borders and window dividers
+  (modify-all-frames-parameters
+   '((right-divider-width . 40)
+     (internal-border-width . 40)))
+  (dolist (face '(window-divider
+                  window-divider-first-pixel
+                  window-divider-last-pixel))
+    (face-spec-reset-face face)
+    (set-face-foreground face (face-attribute 'default :background)))
+  (set-face-background 'fringe (face-attribute 'default :background))
 
-    (setq
-     ;; Edit settings
-     org-auto-align-tags nil
-     org-tags-column 0
-     org-catch-invisible-edits 'show-and-error
-     org-special-ctrl-a/e t
-     org-insert-heading-respect-content t
-     line-spacing 0.1
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+   line-spacing 0.1
 
-     ;; Org styling, hide markup etc.
-     org-hide-emphasis-markers t
-     org-pretty-entities t
-     org-pretty-entities-include-sub-superscripts nil
-     ;; Org styling, hide markup etc.
-     org-hide-emphasis-markers t
-     org-pretty-entities t
+   org-pretty-entities-include-sub-superscripts nil
+   ;; Org styling, hide markup etc.
+   org-hide-emphasis-markers t
+   org-pretty-entities t
 
-     ;; Agenda styling
-     org-agenda-tags-column 0
-     org-agenda-block-separator ?─
-     org-agenda-time-grid
-     '((daily today require-timed)
-       (800 1000 1200 1400 1600 1800 2000)
-       " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
-     org-agenda-current-time-string
-     "◀── now ─────────────────────────────────────────────────")
+   ;; Agenda styling
+   org-agenda-tags-column 0
+   org-agenda-block-separator ?─
+   org-agenda-time-grid
+   '((daily today require-timed)
+     (800 1000 1200 1400 1600 1800 2000)
+     " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+   org-agenda-current-time-string
+   "◀── now ─────────────────────────────────────────────────")
 
-    ;; Ellipsis styling
-    (setq org-ellipsis "…")
-    (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
-    (set-face-attribute 'org-table nil :inherit 'fixed-pitch) )
+  ;; Ellipsis styling
+  (setq org-ellipsis "…")
+  (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
+  (set-face-attribute 'org-table nil :inherit 'fixed-pitch) )
 
 
 
 
-  (defun am/org-mode-setup ()
-    ;; (org-indent-mode 1)
-    (variable-pitch-mode 1)
-    (visual-line-mode 1))
+(defun am/org-mode-setup ()
+  ;; (org-indent-mode 1)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
 
-  (use-package org
-    ;; :straight (:type built-in)
-    :hook
-    (org-mode . am/org-mode-setup)
-    ;; (org-src-mode-hook . company-mode)
-    :config
-    (setq org-hide-emphasis-markers nil
-          org-image-actual-width nil
-          org-adapt-indentation t
-          org-startup-indented t
-          org-agenda-files
-          '("~/org"))
-    ;; (setq org-blank-before-new-entry
-    ;; '((heading . nil)
-    ;; (plain-list-item . auto)))
-    (setq org-todo-keywords
-          '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
-    (setq org-hierarchical-todo-statistics nil)
-    (auto-revert-mode 1)
-    (am/org-font-setup)
-    (am/org-setup))
+(use-package org
+  ;; :straight (:type built-in)
+  :hook
+  (org-mode . am/org-mode-setup)
+  ;; (org-src-mode-hook . company-mode)
+  :config
+  (setq org-image-actual-width nil
+        org-adapt-indentation t
+        org-startup-indented t
+        org-agenda-files
+        '("~/org"))
+  ;; (setq org-blank-before-new-entry
+  ;; '((heading . nil)
+  ;; (plain-list-item . auto)))
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
+  (setq org-hierarchical-todo-statistics nil)
+  (am/org-font-setup)
+  (am/org-setup))
 
-  (use-package org-modern
-    :after org
-    :hook (org-mode . global-org-modern-mode)
-    :custom
-    (org-modern-star 'replace)
-    (org-modern-timestamp nil))
+(use-package org-modern
+  :after org
+  :hook (org-mode . org-modern-mode)
+  :custom
+  (org-modern-star 'replace)
+  (org-modern-timestamp nil))
 
-  (use-package org-roam
-    :init
-    (setq org-roam-vs-ack t)
-    :custom
-    (org-roam-directory (file-truename "~/org/roam/"))
-    (org-roam-db-autosync-mode)
-    (org-roam-completion-everywhere t)
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n i" . org-roam-node-insert)
-           :map org-mode-map
-           ("C-M-i" . completion-at-point))
-    :config
-    (org-roam-setup))
+(use-package org-roam
+  :init
+  (setq org-roam-vs-ack t)
+  :custom
+  (org-roam-directory (file-truename "~/org/roam/"))
+  (org-roam-completion-everywhere t)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point))
+  :config
+  (org-roam-db-autosync-mode 1)
+  (org-roam-setup))
 
-  ;; Org babel languages
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '((emacs-lisp . t)
-     (python . t)
-     (shell . t)
-     (C . t)))
-  (setq org-confirm-babel-evaluate nil)
+;; Org babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (python . t)
+   (shell . t)
+   (C . t)))
+(setq org-confirm-babel-evaluate nil)
 
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
-  (add-to-list 'org-structure-template-alist '("cc"   . "src C"))
-  (add-to-list 'org-structure-template-alist '("cpp" . "src cpp"))
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("cc"   . "src C"))
+(add-to-list 'org-structure-template-alist '("cpp" . "src cpp"))
 
 
-  ;; Adjusts org latex font
-  (setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
+;; Adjusts org latex font
+(setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
-  (use-package cdlatex
-    :hook (org-mode . turn-on-org-cdlatex))
+(use-package cdlatex
+  :hook (org-mode . turn-on-org-cdlatex))
 
-  (use-package org-fragtog
-    :hook (org-mode . org-fragtog-mode))
-
-  (use-package pdf-tools
-    :config
-    (pdf-tools-install :no-query)
-    (require 'pdf-info))
-  (defun my-pdf-view-mode-hook ()
-    "Custom hook to fit PDF page to window on opening"
-    (pdf-view-fit-page-to-window)
-    (auto-revert-mode))
-  (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
-
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
 
 (use-package pdf-tools
   :config
-  (pdf-tools-install :no-query))
+  (pdf-tools-install :no-query)
+  (require 'pdf-info))
+
+(defun my-pdf-view-mode-hook ()
+  (pdf-view-fit-page-to-window)
+  (auto-revert-mode))
+
+(add-hook 'pdf-view-mode-hook #'my-pdf-view-mode-hook)
 
 (use-package org-noter
   :after (org pdf-tools)
@@ -906,32 +904,32 @@ With a prefix ARG, remove start location."
     (add-hook 'pdf-annot-activate-handler-functions
               #'org-noter-pdftools-jump-to-note)))
 
-  (use-package org-roam-ui
-    :straight
-    (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
-    :after org-roam
-    ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
-    ;;         a hookable mode anymore, you're advised to pick something yourself
-    ;;         if you don't care about startup time, use
-    ;;  :hook (after-init . org-roam-ui-mode)
-    :config
-    (setq org-roam-ui-sync-theme t
-          org-roam-ui-follow t
-          org-roam-ui-update-on-save t
-          org-roam-ui-open-on-start t))
+(use-package org-roam-ui
+  :straight
+  (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
+  :after org-roam
+  ;;         normally we'd recommend hooking orui after org-roam, but since org-roam does not have
+  ;;         a hookable mode anymore, you're advised to pick something yourself
+  ;;         if you don't care about startup time, use
+  ;;  :hook (after-init . org-roam-ui-mode)
+  :config
+  (setq org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
 
-  (setq org-publish-project-alist
-        '(("my-org-files"
-           :base-directory "~/org/roam"
-           :base-extension "org"
-           :recursive t
-           :publishing-directory "~/public_html"
-           :publishing-function org-html-publish-to-html
-           :with-broken-links t
-           )))
+(setq org-publish-project-alist
+      '(("my-org-files"
+         :base-directory "~/org/roam"
+         :base-extension "org"
+         :recursive t
+         :publishing-directory "~/public_html"
+         :publishing-function org-html-publish-to-html
+         :with-broken-links t
+         )))
 
-  ;; org special edit splits to the right
-  (setq org-src-window-setup 'split-window-right)
+;; org special edit splits to the right
+(setq org-src-window-setup 'split-window-right)
 
 (use-package citar
     :custom
@@ -1162,7 +1160,7 @@ With a prefix ARG, remove start location."
     "bp" '(previous-buffer :which-key "Previous")
     "bN" '(previous-buffer :which-key "Previous")
     "bl" '(consult-buffer :which-key "Switch")
-    "bk" '(kill-buffer :which-key Kill)
+    "bk" '(kill-buffer :which-key "Kill")
 
     "w"  '(:ignore w :which-key "Window")
     "ww" '(evil-window-next :which-key "Next")
@@ -1269,17 +1267,12 @@ With a prefix ARG, remove start location."
       (run-python))))
 
 (add-hook 'python-ts-mode-hook #'am/python-project-setup)
-;; (use-package apheleia
-;; :defines (apheleia-formatters apheleia-mode-alist)
-;; :hook (after-init . apheleia-global-mode)
-;; :config
-;; Use 'ruff' instead of 'black'. Remove 'ruff-isort' when 'ruff format'
-;; supports it.
-;; Check - https://docs.astral.sh/ruff/formatter/#sorting-imports
-;; https://github.com/astral-sh/ruff/issues/8232
-;; (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
-;; (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
+(use-package apheleia
+  :hook (prog-mode . apheleia-mode)
+  :config
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+        '(ruff)))
 ;; (use-package lazy-ruff
 ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
 ;; :config

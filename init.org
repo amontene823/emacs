@@ -122,161 +122,163 @@ Improves emacs startup time
 *** Look and Feel
 #+begin_src emacs-lisp
 
-    (setq user-full-name "Angelo Montenegro"
-          user-mail-address "amontene823@gmail.com")
-    ;; dont pop up the warnings buffer during async native compilation
-    (setq native-comp-async-report-warnings-errors 'silent)
-    ;; quit emacs directly, even if there are running processes
-    (setq confirm-kill-processes nil)
+  (setq user-full-name "Angelo Montenegro"
+        user-mail-address "amontene823@gmail.com")
+  ;; dont pop up the warnings buffer during async native compilation
+  (setq native-comp-async-report-warnings-errors 'silent)
+  ;; quit emacs directly, even if there are running processes
+  (setq confirm-kill-processes nil)
 
-    ;;
-    (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
-    ;; create the savefile dir if it doesn't exist
-    (unless (file-exists-p angelo-savefile-dir)
-      (make-directory angelo-savefile-dir))
-    (use-package saveplace
-      :config
-      (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
-      ;; activate it for all buffers
-      (save-place-mode +1))
-
-    ;; remove toolbar
-    (when (fboundp 'tool-bar-mode)
-      (tool-bar-mode -1))
-    (setq inhibit-startup-message t)
-    (setq inhibit-startup-screen t)
-    (blink-cursor-mode -1)
-    (scroll-bar-mode -1)
-    (tool-bar-mode -1)
-    (tooltip-mode -1)
-    (set-fringe-mode 10)
-    (menu-bar-mode -1)
-    (setq use-short-answers t)
-    (setq visible-bell t)
-    ;; nice scrolling
-    (setq scroll-margin 0
-          scroll-conservatively 100000
-          scroll-preserve-screen-position 1)
-    (when (fboundp 'pixel-scroll-precision-mode)
-      (pixel-scroll-precision-mode t))
-
-    ;; wrapped lines respect the indentation of the original line
-    (global-visual-wrap-prefix-mode 1)
-    ;; Proportional window resizing
-    (setq window-combination-resize t)
-    ;; highlight the current error in compilation/grep buffers
-    (setq next-error-message-highlight t)
-
-    (winner-mode +1)
-    (defun toggle-delete-other-windows ()
-      "Delete other windows in frame if any, or restore previous window config."
-      (interactive)
-      (if (and winner-mode
-               (equal (selected-window) (next-window)))
-          (winner-undo)
-        (delete-other-windows)))
-    ;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
-    ;; maximize the initial frame automatically
-    (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-    ;; more useful frame title, that show either a file or a
-    ;; buffer name (if the buffer isn't visiting a file)
-    (setq frame-title-format
-          '((:eval (if (buffer-file-name)
-                       (abbreviate-file-name (buffer-file-name))
-                     "%b"))))
-    ;; Emacs modes typically provide a standard means to change the
-    ;; indentation width -- eg. c-basic-offset: use that to adjust your
-    ;; personal indentation width, while maintaining the style (and
-    ;; meaning) of any files you load.
-    (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
-    (setq-default tab-width 8)            ;; but maintain correct appearance
-    ;; Newline at end of file
-    (setq require-final-newline t)
-    ;; Wrap lines at 80 characters
-    (setq-default fill-column 80)
-
-    ;; fonts
-    (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
-    (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
-    (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
-    (column-number-mode)
-    (global-display-line-numbers-mode t)
-    ;; Disable line numbers for some modes
-    (defun disable-line-numbers ()
-      "Hook to disable line-number-mode"
-      (display-line-numbers-mode 0))
-    (dolist (hook `(org-mode-hook
-                    term-mode-hook
-                    shell-mode-hook
-                    eshell-mode-hook
-                    pdf-view-mode-hook))
-      (add-hook hook #'disable-line-numbers))
-
-    ;; doom
-    (use-package doom-themes)
+  ;;
+  (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
+  ;; create the savefile dir if it doesn't exist
+  (unless (file-exists-p angelo-savefile-dir)
+    (make-directory angelo-savefile-dir))
+  (use-package saveplace
     :config
-    (load-theme 'doom-tokyo-night t)
-    (use-package doom-modeline
-      :custom (doom-modeline-height 15)
-      :config (doom-modeline-mode 1))
+    (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
+    ;; activate it for all buffers
+    (save-place-mode +1))
 
-    ;; rainbow parantheses
-    (use-package rainbow-delimiters
-      :hook (prog-mode . rainbow-delimiters-mode))
+  ;; remove toolbar
+  (when (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))
+  (setq inhibit-startup-message t)
+  (setq inhibit-startup-screen t)
+  (blink-cursor-mode -1)
+  (scroll-bar-mode -1)
+  (tool-bar-mode -1)
+  (tooltip-mode -1)
+  (set-fringe-mode 10)
+  (menu-bar-mode -1)
+  (setq use-short-answers t)
+  (setq visible-bell t)
+  ;; nice scrolling
+  (setq scroll-margin 0
+        scroll-conservatively 100000
+        scroll-preserve-screen-position 1)
+  (when (fboundp 'pixel-scroll-precision-mode)
+    (pixel-scroll-precision-mode t))
 
-    (use-package all-the-icons)
+  ;; wrapped lines respect the indentation of the original line
+  (global-visual-wrap-prefix-mode 1)
+  ;; Proportional window resizing
+  (setq window-combination-resize t)
+  ;; highlight the current error in compilation/grep buffers
+  (setq next-error-message-highlight t)
 
-    ;; diminish - hide minor modes from the mode line
-    (use-package diminish
-      :config
-      (diminish 'abbrev-mode)
-      (diminish 'flyspell-mode)
-      (diminish 'flyspell-prog-mode)
-      (diminish 'eldoc-mode))
+  (winner-mode +1)
+  (defun toggle-delete-other-windows ()
+    "Delete other windows in frame if any, or restore previous window config."
+    (interactive)
+    (if (and winner-mode
+             (equal (selected-window) (next-window)))
+        (winner-undo)
+      (delete-other-windows)))
+  ;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
+  ;; maximize the initial frame automatically
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+  ;; more useful frame title, that show either a file or a
+  ;; buffer name (if the buffer isn't visiting a file)
+  (setq frame-title-format
+        '((:eval (if (buffer-file-name)
+                     (abbreviate-file-name (buffer-file-name))
+                   "%b"))))
+  ;; Emacs modes typically provide a standard means to change the
+  ;; indentation width -- eg. c-basic-offset: use that to adjust your
+  ;; personal indentation width, while maintaining the style (and
+  ;; meaning) of any files you load.
+  (setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
+  (setq-default tab-width 8)            ;; but maintain correct appearance
+  ;; Newline at end of file
+  (setq require-final-newline t)
+  ;; Wrap lines at 80 characters
+  (setq-default fill-column 80)
 
-    ;; store all backup and autosave files in the tmp dir
-    (setq backup-directory-alist
-          `((".*" . ,temporary-file-directory)))
-    (setq auto-save-file-name-transforms
-          `((".*" ,temporary-file-directory t)))
-    (use-package undo-tree
-      :config
-      ;; autosave the undo-tree history
-      (setq undo-tree-history-directory-alist
-            `((".*" . ,temporary-file-directory)))
-      (setq undo-tree-auto-save-history t)
-      (global-undo-tree-mode +1)
-      (diminish 'undo-tree-mode))
+  ;; fonts
+  (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
+  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
+  (set-face-attribute 'variable-pitch nil :font "Inter" :height 120 :weight 'light)
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+  ;; Disable line numbers for some modes
+  (defun disable-line-numbers ()
+    "Hook to disable line-number-mode"
+    (display-line-numbers-mode 0))
+  (dolist (hook `(org-mode-hook
+                  term-mode-hook
+                  shell-mode-hook
+                  eshell-mode-hook
+                  pdf-view-mode-hook))
+    (add-hook hook #'disable-line-numbers))
 
-    ;; revert buffers automatically when underlying files are changed externally
-    (setq auto-revert-avoid-polling t)
-    (global-auto-revert-mode t)
+  ;; doom
+  (use-package doom-themes
+    :config
+    (load-theme 'doom-tokyo-night t))
+  (use-package doom-modeline
+    :custom (doom-modeline-height 15)
+    :config (doom-modeline-mode 1))
 
-    ;; make it possible to navigate to the C source of Emacs functions
-    (setq find-function-C-source-directory "~/projects/emacs")
+  ;; rainbow parantheses
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
 
-    (use-package paren
-      :config
-      (show-paren-mode +1)
-      ;; show matching paren context when it's offscreen
-      (setq show-paren-context-when-offscreen 'overlay))
+  (use-package all-the-icons)
 
-    (use-package elec-pair
-      :config
-      (electric-pair-mode +1))
+  ;; diminish - hide minor modes from the mode line
+  (use-package diminish
+    :config
+    (diminish 'abbrev-mode)
+    (diminish 'flyspell-mode)
+    (diminish 'flyspell-prog-mode)
+    (diminish 'eldoc-mode))
 
-    (use-package whitespace
-      :init
-      (add-hook 'prog-mode-hook #'whitespace-mode)
-      (add-hook 'before-save-hook #'whitespace-cleanup)
-      :config
-      (setq whitespace-line-column 80)
-      (setq whitespace-style '(face tabs empty trailing lines-tail)))
+  ;; store all backup and autosave files in the tmp dir
+  (setq backup-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+        `((".*" ,temporary-file-directory t)))
+  ;; (use-package undo-tree
+  ;;   :config
+  ;;   ;; autosave the undo-tree history
+  ;;   (setq undo-tree-history-directory-alist
+  ;;         `((".*" . ,temporary-file-directory)))
+  ;;   (setq undo-tree-auto-save-history t)
+  ;;   (global-undo-tree-mode +1)
+  ;;   (diminish 'undo-tree-mode))
 
-    (use-package rainbow-mode
-      :config
-      (add-hook 'prog-mode-hook #'rainbow-mode)
-      (diminish 'rainbow-mode))
+  ;; revert buffers automatically when underlying files are changed externally
+  (setq auto-revert-avoid-polling t)
+  (global-auto-revert-mode t)
+
+  ;; make it possible to navigate to the C source of Emacs functions
+  (setq find-function-C-source-directory "~/projects/emacs")
+
+  (use-package paren
+    :config
+    (show-paren-mode +1)
+    ;; show matching paren context when it's offscreen
+    (setq show-paren-context-when-offscreen 'overlay))
+
+  (use-package elec-pair
+    :config
+    (electric-pair-mode +1))
+
+  (use-package whitespace
+    :init
+    (add-hook 'prog-mode-hook #'whitespace-mode)
+    (add-hook 'prog-mode-hook
+              (lambda ()
+                (add-hook 'before-save-hook #'whitespace-cleanup nil t)))
+    :config
+    (setq whitespace-line-column 80)
+    (setq whitespace-style '(face tabs empty trailing lines-tail)))
+
+  (use-package rainbow-mode
+    :config
+    (add-hook 'prog-mode-hook #'rainbow-mode)
+    (diminish 'rainbow-mode))
 
   (use-package treemacs
     :defer t
@@ -286,8 +288,8 @@ Improves emacs startup time
   (use-package treemacs-evil
     :after (treemacs evil))
 
-  (use-package treemacs-projectile
-    :after (treemacs projectile))
+  ;; (use-package treemacs-projectile
+  ;;   :after (treemacs projectile))
 
 #+end_src
 
@@ -351,7 +353,7 @@ Improves emacs startup time
     (add-hook hook (lambda () (flyspell-mode 1))))
 
   (when (eq system-type 'darwin) ;; Check if the OS is macOS
-    (eval-after-load "flyspell"
+    (with-eval-after-load "flyspell"
       '(progn
          (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
          (define-key flyspell-mouse-map [mouse-3] #'undefined))))
@@ -472,6 +474,11 @@ Improves emacs startup time
     (corfu-popupinfo-mode)
     (corfu-history-mode)
     )
+
+  (use-package cape
+    :init
+    (add-to-list 'completion-at-point-functions #'cape-file)
+    (add-to-list 'completion-at-point-functions #'cape-dabbrev))
 
   (use-package emacs
     :straight (:type built-in)
@@ -843,9 +850,6 @@ Improves emacs startup time
      org-insert-heading-respect-content t
      line-spacing 0.1
 
-     ;; Org styling, hide markup etc.
-     org-hide-emphasis-markers t
-     org-pretty-entities t
      org-pretty-entities-include-sub-superscripts nil
      ;; Org styling, hide markup etc.
      org-hide-emphasis-markers t
@@ -880,8 +884,7 @@ Improves emacs startup time
     (org-mode . am/org-mode-setup)
     ;; (org-src-mode-hook . company-mode)
     :config
-    (setq org-hide-emphasis-markers nil
-          org-image-actual-width nil
+    (setq org-image-actual-width nil
           org-adapt-indentation t
           org-startup-indented t
           org-agenda-files
@@ -892,13 +895,12 @@ Improves emacs startup time
     (setq org-todo-keywords
           '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
     (setq org-hierarchical-todo-statistics nil)
-    (auto-revert-mode 1)
     (am/org-font-setup)
     (am/org-setup))
 
   (use-package org-modern
     :after org
-    :hook (org-mode . global-org-modern-mode)
+    :hook (org-mode . org-modern-mode)
     :custom
     (org-modern-star 'replace)
     (org-modern-timestamp nil))
@@ -908,7 +910,6 @@ Improves emacs startup time
     (setq org-roam-vs-ack t)
     :custom
     (org-roam-directory (file-truename "~/org/roam/"))
-    (org-roam-db-autosync-mode)
     (org-roam-completion-everywhere t)
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
@@ -916,6 +917,7 @@ Improves emacs startup time
            :map org-mode-map
            ("C-M-i" . completion-at-point))
     :config
+    (org-roam-db-autosync-mode 1)
     (org-roam-setup))
 
   ;; Org babel languages
@@ -948,62 +950,58 @@ Improves emacs startup time
     :config
     (pdf-tools-install :no-query)
     (require 'pdf-info))
+
   (defun my-pdf-view-mode-hook ()
-    "Custom hook to fit PDF page to window on opening"
     (pdf-view-fit-page-to-window)
     (auto-revert-mode))
-  (add-hook 'pdf-view-mode-hook 'my-pdf-view-mode-hook)
 
+  (add-hook 'pdf-view-mode-hook #'my-pdf-view-mode-hook)
 
-(use-package pdf-tools
-  :config
-  (pdf-tools-install :no-query))
+  (use-package org-noter
+    :after (org pdf-tools)
+    :custom
+    (org-noter-supported-modes '(pdf-view-mode)))
 
-(use-package org-noter
-  :after (org pdf-tools)
-  :custom
-  (org-noter-supported-modes '(pdf-view-mode)))
+  (use-package org-pdftools
+    :after (org pdf-tools)
+    :hook (org-mode . org-pdftools-setup-link))
 
-(use-package org-pdftools
-  :after (org pdf-tools)
-  :hook (org-mode . org-pdftools-setup-link))
+  (use-package org-noter-pdftools
+    :after (org-noter org-pdftools pdf-tools)
+    :config
+    ;; Add a function to ensure precise note is inserted
+    (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((org-noter-insert-note-no-questions
+              (if toggle-no-questions
+                  (not org-noter-insert-note-no-questions)
+                org-noter-insert-note-no-questions))
+             (org-pdftools-use-isearch-link t)
+             (org-pdftools-use-freepointer-annot t))
+         (org-noter-insert-note (org-noter--get-precise-info)))))
 
-(use-package org-noter-pdftools
-  :after (org-noter org-pdftools pdf-tools)
-  :config
-  ;; Add a function to ensure precise note is inserted
-  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((org-noter-insert-note-no-questions
-            (if toggle-no-questions
-                (not org-noter-insert-note-no-questions)
-              org-noter-insert-note-no-questions))
-           (org-pdftools-use-isearch-link t)
-           (org-pdftools-use-freepointer-annot t))
-       (org-noter-insert-note (org-noter--get-precise-info)))))
+    (defun org-noter-set-start-location (&optional arg)
+      "When opening a session with this document, go to the current location.
+  With a prefix ARG, remove start location."
+      (interactive "P")
+      (org-noter--with-valid-session
+       (let ((inhibit-read-only t)
+             (ast (org-noter--parse-root))
+             (location
+              (org-noter--doc-approx-location
+               (when (called-interactively-p 'any) 'interactive))))
+         (with-current-buffer (org-noter--session-notes-buffer session)
+           (org-with-wide-buffer
+            (goto-char (org-element-property :begin ast))
+            (if arg
+                (org-entry-delete nil org-noter-property-note-location)
+              (org-entry-put nil org-noter-property-note-location
+                             (org-noter--pretty-print-location location))))))))
 
-  (defun org-noter-set-start-location (&optional arg)
-    "When opening a session with this document, go to the current location.
-With a prefix ARG, remove start location."
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((inhibit-read-only t)
-           (ast (org-noter--parse-root))
-           (location
-            (org-noter--doc-approx-location
-             (when (called-interactively-p 'any) 'interactive))))
-       (with-current-buffer (org-noter--session-notes-buffer session)
-         (org-with-wide-buffer
-          (goto-char (org-element-property :begin ast))
-          (if arg
-              (org-entry-delete nil org-noter-property-note-location)
-            (org-entry-put nil org-noter-property-note-location
-                           (org-noter--pretty-print-location location))))))))
-
-  (with-eval-after-load 'pdf-annot
-    (add-hook 'pdf-annot-activate-handler-functions
-              #'org-noter-pdftools-jump-to-note)))
+    (with-eval-after-load 'pdf-annot
+      (add-hook 'pdf-annot-activate-handler-functions
+                #'org-noter-pdftools-jump-to-note)))
 
   (use-package org-roam-ui
     :straight
@@ -1489,7 +1487,7 @@ There are 112 pdf files in this directory
       "bp" '(previous-buffer :which-key "Previous")
       "bN" '(previous-buffer :which-key "Previous")
       "bl" '(consult-buffer :which-key "Switch")
-      "bk" '(kill-buffer :which-key Kill)
+      "bk" '(kill-buffer :which-key "Kill")
 
       "w"  '(:ignore w :which-key "Window")
       "ww" '(evil-window-next :which-key "Next")
@@ -1615,17 +1613,12 @@ There are 112 pdf files in this directory
         (run-python))))
 
   (add-hook 'python-ts-mode-hook #'am/python-project-setup)
-  ;; (use-package apheleia
-  ;; :defines (apheleia-formatters apheleia-mode-alist)
-  ;; :hook (after-init . apheleia-global-mode)
-  ;; :config
-  ;; Use 'ruff' instead of 'black'. Remove 'ruff-isort' when 'ruff format'
-  ;; supports it.
-  ;; Check - https://docs.astral.sh/ruff/formatter/#sorting-imports
-  ;; https://github.com/astral-sh/ruff/issues/8232
-  ;; (setf (alist-get 'python-mode apheleia-mode-alist) '(ruff-isort ruff))
-  ;; (setf (alist-get 'python-ts-mode apheleia-mode-alist) '(ruff-isort ruff)))
 
+  (use-package apheleia
+    :hook (prog-mode . apheleia-mode)
+    :config
+    (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+          '(ruff)))
   ;; (use-package lazy-ruff
   ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
   ;; :config
