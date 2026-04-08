@@ -713,7 +713,7 @@
                       (org-level-8 . 1.0)))
         (set-face-attribute (car face) nil :font "Inter" :weight 'bold :height (cdr face)))
       ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-      (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-block nil :foreground 'unspecified :inherit 'fixed-pitch)
       (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
       (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
       (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
