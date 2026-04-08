@@ -231,6 +231,17 @@
   (add-hook 'prog-mode-hook #'rainbow-mode)
   (diminish 'rainbow-mode))
 
+(use-package treemacs
+  :defer t
+  :config
+  (setq treemacs-width 30))
+
+(use-package treemacs-evil
+  :after (treemacs evil))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
+
 (global-unset-key (kbd "C-/"))
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
