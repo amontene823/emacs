@@ -1541,36 +1541,44 @@ There are 112 pdf files in this directory
 * Programming
 *** LSP
 #+begin_src emacs-lisp
-
   (use-package eglot
     :straight (:type built-in)
     :config
     ;; Python
     (add-to-list 'eglot-server-programs
                  '(python-ts-mode . ("pyright-langserver" "--stdio")))
-
     ;; C / C++
     (add-to-list 'eglot-server-programs
                  '((c-mode c-ts-mode c++-mode c++-ts-mode)
                    . ("clangd")))
+    ;; Nix
+    (add-to-list 'eglot-server-programs
+                 '((nix-mode nix-ts-mode) . ("nixd")))
 
     ;; Org babel Python src blocks
     (add-to-list 'org-src-lang-modes '("python" . python-ts))
-    (add-to-list 'org-src-lang-modes '("C"   . c))
+    (add-to-list 'org-src-lang-modes '("C" . c))
     (add-to-list 'org-src-lang-modes '("cpp" . c++)))
-
-#+end_src
+  #+end_src
 
 #+RESULTS:
+** Apheleia
+#+begin_src emacs-lisp
+  (use-package apheleia
+    :hook (prog-mode . apheleia-mode)
+    :config
+    (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+          '(ruff)))
+  #+end_src
 
 ** Python
 *** Make sure you have Emacs with treesitter support:
 + Treesitter provides better syntax highlighting and parsing vs. classic mode (e.g, python-ts-mode better than python-mode)
-    M-: (treesit-available-p) RET should return t
+  M-: (treesit-available-p) RET should return t
 
-    Make sure you have installed python treesitter grammar
-    Windows: download libtree-sitter-python.dll from https://corwin.bru.st/emacs-tree-sitter/ into ~/.emacs.d/tree-sitter/
-    GNU/Linux: run M-x treesit-install-language-grammar RET type python RET and do a couple of additional y for default options. You will need to have git and C/Cpp compiler available as it would download repo and build grammar library.
+  Make sure you have installed python treesitter grammar
+  Windows: download libtree-sitter-python.dll from https://corwin.bru.st/emacs-tree-sitter/ into ~/.emacs.d/tree-sitter/
+  GNU/Linux: run M-x treesit-install-language-grammar RET type python RET and do a couple of additional y for default options. You will need to have git and C/Cpp compiler available as it would download repo and build grammar library.
 
 #+begin_src emacs-lisp
   (use-package treesit-auto
@@ -1614,11 +1622,6 @@ There are 112 pdf files in this directory
 
   (add-hook 'python-ts-mode-hook #'am/python-project-setup)
 
-  (use-package apheleia
-    :hook (prog-mode . apheleia-mode)
-    :config
-    (setf (alist-get 'python-ts-mode apheleia-mode-alist)
-          '(ruff)))
   ;; (use-package lazy-ruff
   ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
   ;; :config
@@ -1639,3 +1642,12 @@ There are 112 pdf files in this directory
 
 #+RESULTS:
 : t
+
+** Nix
+#+begin_src emacs-lisp
+  ;; (use-package nix-mode
+  ;; :mode ("\\.nix\\'" . nix-mode)
+  ;; :hook (nix-mode . eglot-ensure))
+  (use-package nix-mode
+    :mode "\\.nix\\'")
+#+end_src

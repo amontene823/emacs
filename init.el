@@ -1216,16 +1216,24 @@ With a prefix ARG, remove start location."
   ;; Python
   (add-to-list 'eglot-server-programs
                '(python-ts-mode . ("pyright-langserver" "--stdio")))
-
   ;; C / C++
   (add-to-list 'eglot-server-programs
                '((c-mode c-ts-mode c++-mode c++-ts-mode)
                  . ("clangd")))
+  ;; Nix
+  (add-to-list 'eglot-server-programs
+               '((nix-mode nix-ts-mode) . ("nixd")))
 
   ;; Org babel Python src blocks
   (add-to-list 'org-src-lang-modes '("python" . python-ts))
-  (add-to-list 'org-src-lang-modes '("C"   . c))
+  (add-to-list 'org-src-lang-modes '("C" . c))
   (add-to-list 'org-src-lang-modes '("cpp" . c++)))
+
+(use-package apheleia
+  :hook (prog-mode . apheleia-mode)
+  :config
+  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
+        '(ruff)))
 
 (use-package treesit-auto
   :custom
@@ -1268,11 +1276,6 @@ With a prefix ARG, remove start location."
 
 (add-hook 'python-ts-mode-hook #'am/python-project-setup)
 
-(use-package apheleia
-  :hook (prog-mode . apheleia-mode)
-  :config
-  (setf (alist-get 'python-ts-mode apheleia-mode-alist)
-        '(ruff)))
 ;; (use-package lazy-ruff
 ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding
 ;; :config
@@ -1288,3 +1291,9 @@ With a prefix ARG, remove start location."
 (advice-add 'save-place-find-file-hook :after
             (lambda (&rest _)
               (when buffer-file-name (ignore-errors (recenter)))))
+
+;; (use-package nix-mode
+;; :mode ("\\.nix\\'" . nix-mode)
+;; :hook (nix-mode . eglot-ensure))
+(use-package nix-mode
+  :mode "\\.nix\\'")
