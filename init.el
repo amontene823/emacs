@@ -1,5 +1,20 @@
 ;; -*- lexical-binding: t; -*-
 
+;; Disable bidirection text scanning
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
+;; Skip fontification during input
+(setq redisplay-skip-fontification-on-input t)
+;; Increase process output buffer for LSP
+(setq read-process-output-max (* 4 1024 1024)) ; 4MB
+;; Don't render cursors in non-focused windows
+(setq-default cursor-in-non-selected-windows nil)
+(setq highlight-nonselected-windows nil)
+(setq gc-cons-threshold 50000000)
+(setq load-prefer-newer t)
+(setq ffap-machine-p-known 'reject)
+
 ;; (require 'package)
 ;; (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 ;;                          ("org" . "https://orgmode.org/elpa/")
@@ -26,17 +41,25 @@
          'silent 'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage)) 
+  (load bootstrap-file nil 'nomessage))
 
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
 ;; (setq package-enable-at-startup nil)
 
+;; (use-package envrc
+;; :config
+;; (envrc-global-mode))
+;; Don't run direnv/envrc inside org-src edit buffers (org-edit-special)
+;; (add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
 (use-package envrc
   :config
-  (envrc-global-mode))
-;; Don't run direnv/envrc inside org-src edit buffers (org-edit-special)
-(add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
+  (defun am/envrc-enable-on-file-open ()
+    (when (and buffer-file-name
+               (not (minibufferp))
+               (not (derived-mode-p 'org-src-mode)))
+      (envrc-mode 1)))
+  (add-hook 'find-file-hook #'am/envrc-enable-on-file-open))
 
 ;; (use-package direnv
 ;;   :config
@@ -52,13 +75,79 @@
 
 ;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 
+(setq user-full-name "Angelo Montenegro"
+      user-mail-address "amontene823@gmail.com")
+;; dont pop up the warnings buffer during async native compilation
+(setq native-comp-async-report-warnings-errors 'silent)
+;; quit emacs directly, even if there are running processes
+(setq confirm-kill-processes nil)
+
+;;
+(defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
+;; create the savefile dir if it doesn't exist
+(unless (file-exists-p angelo-savefile-dir)
+  (make-directory angelo-savefile-dir))
+(use-package saveplace
+  :config
+  (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
+  ;; activate it for all buffers
+  (save-place-mode +1))
+
+;; remove toolbar
+(when (fboundp 'tool-bar-mode)
+  (tool-bar-mode -1))
 (setq inhibit-startup-message t)
+(setq inhibit-startup-screen t)
+(blink-cursor-mode -1)
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (tooltip-mode -1)
 (set-fringe-mode 10)
 (menu-bar-mode -1)
+(setq use-short-answers t)
 (setq visible-bell t)
+;; nice scrolling
+(setq scroll-margin 0
+      scroll-conservatively 100000
+      scroll-preserve-screen-position 1)
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
+
+;; wrapped lines respect the indentation of the original line
+(global-visual-wrap-prefix-mode 1)
+;; Proportional window resizing
+(setq window-combination-resize t)
+;; highlight the current error in compilation/grep buffers
+(setq next-error-message-highlight t)
+
+(winner-mode +1)
+(defun toggle-delete-other-windows ()
+  "Delete other windows in frame if any, or restore previous window config."
+  (interactive)
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+;; (global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
+;; maximize the initial frame automatically
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+;; more useful frame title, that show either a file or a
+;; buffer name (if the buffer isn't visiting a file)
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
+;; Emacs modes typically provide a standard means to change the
+;; indentation width -- eg. c-basic-offset: use that to adjust your
+;; personal indentation width, while maintaining the style (and
+;; meaning) of any files you load.
+(setq-default indent-tabs-mode nil)   ;; don't use tabs to indent
+(setq-default tab-width 8)            ;; but maintain correct appearance
+;; Newline at end of file
+(setq require-final-newline t)
+;; Wrap lines at 80 characters
+(setq-default fill-column 80)
+
 ;; fonts
 (set-face-attribute 'default nil :font "JetBrains Mono" :height 120 :weight 'medium)
 (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :height 120 :weight 'medium)
@@ -70,10 +159,10 @@
   "Hook to disable line-number-mode"
   (display-line-numbers-mode 0))
 (dolist (hook `(org-mode-hook
-		term-mode-hook
-		shell-mode-hook
-		eshell-mode-hook
-		pdf-view-mode-hook))
+                term-mode-hook
+                shell-mode-hook
+                eshell-mode-hook
+                pdf-view-mode-hook))
   (add-hook hook #'disable-line-numbers))
 
 ;; doom
@@ -84,11 +173,64 @@
   :custom (doom-modeline-height 15)
   :config (doom-modeline-mode 1))
 
-;; raindbow parantheses
+;; rainbow parantheses
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package all-the-icons)
+
+;; diminish - hide minor modes from the mode line
+(use-package diminish
+  :config
+  (diminish 'abbrev-mode)
+  (diminish 'flyspell-mode)
+  (diminish 'flyspell-prog-mode)
+  (diminish 'eldoc-mode))
+
+;; store all backup and autosave files in the tmp dir
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+(use-package undo-tree
+  :config
+  ;; autosave the undo-tree history
+  (setq undo-tree-history-directory-alist
+        `((".*" . ,temporary-file-directory)))
+  (setq undo-tree-auto-save-history t)
+  (global-undo-tree-mode +1)
+  (diminish 'undo-tree-mode))
+
+;; revert buffers automatically when underlying files are changed externally
+(setq auto-revert-avoid-polling t)
+(global-auto-revert-mode t)
+
+;; make it possible to navigate to the C source of Emacs functions
+(setq find-function-C-source-directory "~/projects/emacs")
+
+(use-package paren
+  :config
+  (show-paren-mode +1)
+  ;; show matching paren context when it's offscreen
+  (setq show-paren-context-when-offscreen 'overlay))
+
+(use-package elec-pair
+  :config
+  (electric-pair-mode +1))
+
+(use-package whitespace
+  :init
+  (dolist (hook '(prog-mode-hook text-mode-hook))
+    (add-hook hook #'whitespace-mode))
+  (add-hook 'before-save-hook #'whitespace-cleanup)
+  :config
+  (setq whitespace-line-column 80) ;; limit line length
+  (setq whitespace-style '(face tabs empty trailing lines-tail)))
+
+(use-package rainbow-mode
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-mode)
+  (diminish 'rainbow-mode))
 
 (global-unset-key (kbd "C-/"))
 ;; Make ESC quit prompts
@@ -283,7 +425,7 @@
   :if (eq window-system 'mac)
   :init
   (setq scroll-conservatively 101 ; important!
-        scroll-margin 0) 
+        scroll-margin 0)
   :config
   ;; Enable the ultra-scroll mode
   (ultra-scroll-mac-mode 1))
@@ -490,6 +632,62 @@
 ;; (latex-preview-pane-enable)
 ;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
+(use-package markdown-mode
+  :mode (("\\.md\\'" . gfm-mode)
+         ("\\.markdown\\'" . gfm-mode))
+  :config
+  ;; syntax-highlight code inside fenced blocks
+  (setq markdown-fontify-code-blocks-natively t)
+  ;; no space between ``` and the language name
+  (setq markdown-spaces-after-code-fence 0)
+  :preface
+  (defun jekyll-insert-image-url ()
+    (interactive)
+    (let* ((files (directory-files "../assets/images"))
+           (selected-file (completing-read "Select image: " files nil t)))
+      (insert (format "![%s](/assets/images/%s)" selected-file selected-file))))
+
+  (defun jekyll-insert-post-url ()
+    (interactive)
+    (let* ((project-root (projectile-project-root))
+           (posts-dir (expand-file-name "_posts" project-root))
+           (default-directory posts-dir))
+      (let* ((files (remove "." (mapcar #'file-name-sans-extension (directory-files "."))))
+             (selected-file (completing-read "Select article: " files nil t)))
+        (insert (format "{%% post_url %s %%}" selected-file))))))
+
+;; Prefer side-by-side previews/opening in other windows.
+(setq split-height-threshold nil)
+(setq split-width-threshold 80)
+;; Cleaner listing if you're on GNU ls.
+(setq dired-listing-switches "-alh --group-directories-first")
+
+(use-package nerd-icons)
+
+(use-package nerd-icons-dired
+  :hook (dired-mode . nerd-icons-dired-mode))
+
+(with-eval-after-load 'evil
+  (evil-define-key 'normal dired-mode-map
+    (kbd "h") #'dired-up-directory
+    (kbd "l") #'dired-find-file
+    (kbd "m") #'dired-mark
+    (kbd "u") #'dired-unmark
+    (kbd "t") #'dired-toggle-marks
+    (kbd "C") #'dired-do-copy
+    (kbd "R") #'dired-do-rename
+    (kbd "D") #'dired-do-delete
+    (kbd "Z") #'dired-do-compress
+    (kbd "x") #'dired-do-flagged-delete
+    (kbd "+") #'dired-create-directory
+    (kbd "-") #'dired-up-directory
+    (kbd "M-RET") #'dired-display-file))
+
+(setq delete-by-moving-to-trash t)
+;; always delete and copy recursively
+(setq dired-recursive-deletes 'always)
+(setq dired-recursive-copies 'always)
+
 (defun am/org-font-setup ()
       ;; Replace list hyphen with dot
       ;; (font-lock-add-keywords 'org-mode
@@ -569,7 +767,7 @@
       (visual-line-mode 1))
 
     (use-package org
-      ;; :straight (:type built-in) 
+      ;; :straight (:type built-in)
       :hook
       (org-mode . am/org-mode-setup)
       ;; (org-src-mode-hook . company-mode)
@@ -595,8 +793,8 @@
       :hook (org-mode . global-org-modern-mode)
       :custom
       (org-modern-star 'replace)
-      (org-modern-timestamp nil)) 
-      
+      (org-modern-timestamp nil))
+
       (use-package org-roam
         :init
         (setq org-roam-vs-ack t)
@@ -811,7 +1009,7 @@
   ;; (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
   (setq org-download-screenshot-method "grim -g \"$(slurp)\" %s")
   (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
-  (org-download-enable))  
+  (org-download-enable))
 
 (use-package org-mac-image-paste
   :straight (org-mac-image-paste :type git :host github :repo "jdtsmith/org-mac-image-paste")
@@ -819,7 +1017,7 @@
   :config
   (org-mac-image-paste-mode 1)
   (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
-  (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc. 
+  (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc.
   (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
   ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
 
@@ -837,23 +1035,23 @@
 
   (defun my-org-paste-image-to-dir ()
     "Paste an image into a time stamped unique-named file in the
-    same directory as the org-buffer and insert a link to this file."
+      same directory as the org-buffer and insert a link to this file."
     (interactive)
     (let* ((image-filename
-             (concat
-              (read-from-minibuffer "Enter something: ") ".png"))
-  	  (unix-path
-             (concat
-                (expand-file-name "~")
-                "/references/images/"
-                image-filename))
-            (wsl-path
-             (as-windows-path (concat
-                (expand-file-name "~")
-                "/references/images/"
-                image-filename)))
-            (ps-script
-             (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+            (concat
+             (read-from-minibuffer "Enter something: ") ".png"))
+    	   (unix-path
+            (concat
+             (expand-file-name "~")
+             "/references/images/"
+             image-filename))
+           (wsl-path
+            (as-windows-path (concat
+			      (expand-file-name "~")
+			      "/references/images/"
+			      image-filename)))
+           (ps-script
+            (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
 
       (powershell ps-script)
       (message "here is") (message wsl-path) (message image-filename)
@@ -868,7 +1066,7 @@
   (file-exists-p "\\wsl.localhost\\arch\\home\\angelo\\references\\images\\test.png")
   (defun my-org-paste-image ()
     "Paste an image into a time stamped unique-named file in the
-    same directory as the org-buffer and insert a link to this file."
+      same directory as the org-buffer and insert a link to this file."
     (interactive)
     (let* ((target-file
             (concat
@@ -894,7 +1092,7 @@
 
   (defun as-windows-path (unix-path)
     "Takes a unix path and returns a matching WSL path
-    (e.g. \\\\wsl$\\Ubuntu-20.04\\tmp)"
+      (e.g. \\\\wsl$\\Ubuntu-20.04\\tmp)"
     ;; substring removes the trailing \n
     (substring
      (shell-command-to-string
@@ -905,6 +1103,25 @@
     (call-process "powershell.exe" nil nil nil
                   "-Command" (concat "& {" script "}")))
   )
+
+;; WSL-specific setup
+(when (and (eq system-type 'gnu/linux)
+           (getenv "WSLENV"))
+
+  ;; pgtk is only available in Emacs 29+
+  ;; without it Emacs fonts don't scale properly on
+  ;; HiDPI display
+  (when (< emacs-major-version 29)
+    (set-frame-font "Inconsolata 28" t t))
+
+  ;; Teach Emacs how to open links in your default Windows browser
+  (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
+        (cmd-args '("/c" "start")))
+    (when (file-exists-p cmd-exe)
+      (setq browse-url-generic-program  cmd-exe
+            browse-url-generic-args     cmd-args
+            browse-url-browser-function 'browse-url-generic
+            search-web-default-browser 'browse-url-generic))))
 
 (use-package general
   :config
@@ -935,15 +1152,12 @@
     "wj" '(evil-window-down :which-key "Focus Down")
     "wk" '(evil-window-up :which-key "Focus Up")
     "wl" '(evil-window-right :which-key "Focus Right")
-    "wH" '(evil-window-decrease-width :which-key "Shrink Width")
-    "wJ" '(evil-window-increase-height :which-key "Grow Height")
-    "wK" '(evil-window-decrease-height :which-key "Shrink Height")
-    "wL" '(evil-window-increase-width :which-key "Grow Width")
     "ws" '(evil-window-split :which-key "Horizontal Split")
     "wv" '(evil-window-vsplit :which-key "Vertical Split")
     "wc" '(evil-window-delete :which-key "Close")
-    "wo" '(delete-other-windows :which-key "Close Others")
-
+    "wo" '(toggle-delete-other-windows :which-key "Close Others")
+    "w=" '(enlarge-window :which-key "Grow")
+    "w-" '(shrink-window :which-key "Shrink")
 
     ":" '(execute-extended-command :which-key "M-x")
 
@@ -972,46 +1186,11 @@
     "c"  '(:ignore c :which-key "Citations")
     "ci" '(citar-insert-citation :which-key "insert-citation")
     "ce" '(citar-open-entry :which-key "open-entry")
+
+    "z" '(repeat :which-key "Repeat Command")
+
+    "." '(find-file :which-key "Find file")
     ))
-
-;; (use-package lsp-mode
-;;   :custom
-;;   (lsp-completion-provider :none) ;; we use Corfu!
-;;   :init
-;;   (setq lsp-keymap-prefix "C-c l")
-;;   (defun my/lsp-mode-setup-completion ()
-;;     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-;;           '(orderless))) ;; Configure orderless
-;;   :hook (
-;;          (lsp-completion-mode . my/lsp-mode-setup-completion)
-;;          (python-mode . lsp-deferred)
-;;          (LaTeX-mode . lsp-deferred)
-;;          (lsp-mode . lsp-enable-which-key-integration))
-;;   :commands lsp lsp-deferred)
-
-;; (use-package lsp-pyright
-;;   :ensure t
-;;   :hook (python-mode . (lambda ()
-;;                          (require 'lsp-pyright)
-;;                          (lsp-deferred))))  ; or lsp-deferred
-
-;; (use-package lsp-latex
-;;   ;; this uses texlab
-;;   :ensure t
-;;   :config
-;;   (progn
-;;     (add-hook 'bibtex-mode-hook 'lsp)
-;;     )
-;;   )
-
-;; (use-package lsp-ui :commands lsp-ui-mode)
-
-;; (use-package eglot
-  ;; :straight (:type built-in)  ;; Important if using straight.el
-  ;; :config
-  ;; (add-to-list 'eglot-server-programs
-               ;; '(python-ts-mode . ("pyright-langserver" "--stdio")))
-  ;; (add-to-list 'org-src-lang-modes '("python" . python-ts)))
 
 (use-package eglot
   :straight (:type built-in)
@@ -1072,24 +1251,6 @@
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
-;; (add-hook 'python-ts-mode-hook #'uv-activate)
-;; (add-hook 'python-ts-mode-hook #'eglot-ensure)
-;; (add-hook 'python-ts-mode-hook #'run-python)
-
-;; (add-to-list 'display-buffer-alist
-;;              '("\\*Python\\*"
-;;                (display-buffer-reuse-window
-;;                 display-buffer-at-bottom)
-;;                (window-height . 0.25)))
-
-;; (add-hook
-;;  'python-ts-mode-hook
-;;  (lambda ()
-;;    (uv-activate)
-;;    (eglot-ensure)
-;;    ;; (when (get-buffer "*Python*")
-;;    ;; (kill-buffer "*Python*"))
-;;    (run-python)))
 (defun am/python-project-setup ()
   "Heavy Python setup for real files, not org-src edit buffers."
   (unless (bound-and-true-p org-src-mode)
@@ -1119,3 +1280,8 @@
 (setq org-edit-src-content-indentation 2)
 (setq org-src-tab-acts-natively t)
 (setq evil-auto-indent t)
+(setq help-window-select t)
+
+(advice-add 'save-place-find-file-hook :after
+            (lambda (&rest _)
+              (when buffer-file-name (ignore-errors (recenter)))))
