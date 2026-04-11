@@ -217,6 +217,15 @@
 (use-package elec-pair
   :config
   (electric-pair-mode +1))
+(defun am/org-electric-pair-inhibit (char)
+  (if (eq char ?<)
+      t
+    (electric-pair-default-inhibit char)))
+
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq-local electric-pair-inhibit-predicate
+                        #'am/org-electric-pair-inhibit)))
 
 (use-package whitespace
   :init
@@ -241,6 +250,10 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
+(use-package yasnippet
+  :config
+  (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
+  (yas-global-mode 1))
 ;; (use-package treemacs-projectile
 ;;   :after (treemacs projectile))
 
@@ -771,9 +784,6 @@
   (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch) )
 
-
-
-
 (defun am/org-mode-setup ()
   ;; (org-indent-mode 1)
   (variable-pitch-mode 1)
@@ -829,14 +839,6 @@
    (shell . t)
    (C . t)))
 (setq org-confirm-babel-evaluate nil)
-
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("py" . "src python"))
-(add-to-list 'org-structure-template-alist '("cc"   . "src C"))
-(add-to-list 'org-structure-template-alist '("cpp" . "src cpp"))
-
 
 ;; Adjusts org latex font
 (setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
@@ -1208,6 +1210,9 @@ With a prefix ARG, remove start location."
     "z" '(repeat :which-key "Repeat Command")
 
     "." '(find-file :which-key "Find file")
+
+    "t"  '(:ignore b :which-key "Text")
+    "ta" '(text-scale-adjust :which-key "Adjust Text Scale")
     ))
 
 (use-package eglot
