@@ -249,17 +249,21 @@
   :config
   (setq treemacs-width 30)
   (treemacs-follow-mode 1)
-  (treemacs-project-follow-mode 1))
+  (treemacs-project-follow-mode 1)
+  ;; (treemacs-tag-follow-mode 1)
+  ;; (setq treemacs-tag-follow-delay 0)
+  (setq treemacs-file-event-delay 1000))
 
 (use-package treemacs-evil
   :after (treemacs evil))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile))
 
 (use-package yasnippet
   :config
   (add-to-list 'yas-snippet-dirs (expand-file-name "snippets" user-emacs-directory))
   (yas-global-mode 1))
-;; (use-package treemacs-projectile
-;;   :after (treemacs projectile))
 
 ;; Make ESC quit prompts
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -720,6 +724,12 @@
 ;; always delete and copy recursively
 (setq dired-recursive-deletes 'always)
 (setq dired-recursive-copies 'always)
+
+(use-package projectile
+   :config
+   (setq projectile-project-search-path '("~/Programming" "~/org"))
+   (setq projectile-indexing-method 'alien)
+   (projectile-mode 1))
 
 (defun am/org-font-setup ()
   ;; Replace list hyphen with dot
