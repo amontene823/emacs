@@ -93,12 +93,14 @@ Improves emacs startup time
   ;; (add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
   (use-package envrc
     :config
-    (defun am/envrc-enable-on-file-open ()
+    (defun am/envrc-enable-for-buffer ()
       (when (and buffer-file-name
                  (not (minibufferp))
-                 (not (derived-mode-p 'org-src-mode)))
+                 (not (bound-and-true-p org-src-mode)))
         (envrc-mode 1)))
-    (add-hook 'find-file-hook #'am/envrc-enable-on-file-open))
+    (add-hook 'find-file-hook #'am/envrc-enable-for-buffer)
+    (add-hook 'verilog-mode-hook #'am/envrc-enable-for-buffer)
+    (add-hook 'verilog-ts-mode-hook #'am/envrc-enable-for-buffer))
 
   ;; (use-package direnv
   ;;   :config
@@ -1574,12 +1576,17 @@ There are 112 pdf files in this directory
   GNU/Linux: run M-x treesit-install-language-grammar RET type python RET and do a couple of additional y for default options. You will need to have git and C/Cpp compiler available as it would download repo and build grammar library.
 
 #+begin_src emacs-lisp
-  (use-package treesit-auto
-    :custom
-    (treesit-auto-install 'prompt)
-    :config
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode))
+  (let ((tree-sitter-dir (expand-file-name "tree-sitter" user-emacs-directory)))
+    (when (file-directory-p tree-sitter-dir)
+      (add-to-list 'treesit-extra-load-path tree-sitter-dir)))
+
+  ;; Prefer explicit tree-sitter mode remaps over `treesit-auto`.
+  (setq major-mode-remap-alist
+        '((python-mode . python-ts-mode)
+          (css-mode . css-ts-mode)
+          (js-mode . js-ts-mode)
+          (c-mode . c-ts-mode)
+          (c++-mode . c++-ts-mode)))
 
   (defun uv-activate ()
     "Activate Python environment managed by uv based on current project directory."
@@ -1640,4 +1647,75 @@ There are 112 pdf files in this directory
   ;; :hook (nix-mode . eglot-ensure))
   (use-package nix-mode
     :mode "\\.nix\\'")
+#+end_src
+
+** Verilog
+#+begin_src emacs-lisp
+  (use-package verilog-mode
+    :mode ("\\.v\\'" "\\.vh\\'" "\\.sv\\'" "\\.svh\\'")
+    :init
+    (setq verilog-indent-level             2
+          verilog-indent-level-module      2
+          verilog-indent-level-declaration 2
+          verilog-indent-level-behavioral  2
+          verilog-indent-level-directive   2
+          verilog-case-indent              2
+          verilog-auto-newline             nil
+          verilog-auto-indent-on-newline   t
+          verilog-tab-always-indent        t
+          verilog-align-ifelse             t
+          verilog-align-assign-expr        t
+          verilog-minimum-comment-distance 40
+          verilog-indent-begin-after-if    t
+          verilog-auto-delete-trailing-whitespace nil))
+
+  ;; `verilog-ts-mode` requires the `systemverilog` grammar, not the older
+  ;; `verilog` grammar. Add this after `verilog-mode` so its `:mode` entry does
+  ;; not take precedence.
+  (add-to-list 'auto-mode-alist
+               (cons "\\.s?vh?\\'"
+                     (if (treesit-language-available-p 'systemverilog)
+                         'verilog-ts-mode
+                       'verilog-mode)))
+
+  (use-package verilog-ext
+    :straight (:host github :repo "gmlarumbe/verilog-ext")
+    :after (verilog-mode eglot apheleia)
+    :hook ((verilog-mode . verilog-ext-mode)
+           (verilog-mode . eglot-ensure))
+    :init
+    (setq verilog-ext-feature-list
+          '(font-lock
+            xref
+            capf
+            hierarchy
+            beautify
+            navigation
+            formatter
+            compilation
+            imenu
+            which-func
+            hideshow
+            typedefs
+            time-stamp
+            block-end-comments
+            eglot
+            ports))
+    :config
+    (verilog-ext-mode-setup))
+
+  (with-eval-after-load 'eglot
+    ;; Pick one server you actually have installed in your dev shell.
+    ;; `verible-verilog-ls` is a good default if available.
+    (add-to-list 'eglot-server-programs
+                 '((verilog-mode verilog-ts-mode) . ("verible-verilog-ls"))))
+
+  (with-eval-after-load 'apheleia
+    ;; Format SystemVerilog/Verilog with Verible if it is installed.
+    (setf (alist-get 'verilog-mode apheleia-mode-alist)
+          '(verible-verilog-format))
+    (setf (alist-get 'verilog-ts-mode apheleia-mode-alist)
+          '(verible-verilog-format))
+    (setf (alist-get 'verible-verilog-format apheleia-formatters)
+          '("verible-verilog-format" "--indentation_spaces" "2" "-")))
 #+end_src
