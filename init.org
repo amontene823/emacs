@@ -1328,7 +1328,33 @@ There are 112 pdf files in this directory
 
   (use-package magit)
   (use-package transient) ;; for magit
-  (use-package vterm)
+  (use-package vterm
+    :bind (("C-`" . am/vterm-toggle))
+    :init
+    (defvar am/vterm-buffer-name "*am:vterm*")
+
+    (defun am/vterm-toggle ()
+      "Toggle a persistent vterm window at the bottom of the frame."
+      (interactive)
+      (let* ((buffer (get-buffer am/vterm-buffer-name))
+             (window (and buffer (get-buffer-window buffer nil))))
+        (if (window-live-p window)
+            (delete-window window)
+          (let ((default-directory
+                 (or (when-let ((project (project-current nil)))
+                       (project-root project))
+                     default-directory)))
+            (unless (buffer-live-p buffer)
+              (require 'vterm)
+              (setq buffer (get-buffer-create am/vterm-buffer-name))
+              (with-current-buffer buffer
+                (vterm-mode)))
+            (select-window
+             (display-buffer-in-side-window
+              buffer
+              '((side . bottom)
+                (slot . -1)
+                (window-height . 10)))))))))
   (use-package org-download
     :config
     (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
