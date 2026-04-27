@@ -727,7 +727,7 @@
 
 (use-package projectile
    :config
-   (setq projectile-project-search-path '("~/Programming" "~/org"))
+   (setq projectile-project-search-path '("~/Projects" "~/org"))
    (setq projectile-indexing-method 'alien)
    (projectile-mode 1))
 
@@ -1415,3 +1415,22 @@ With a prefix ARG, remove start location."
         '(verible-verilog-format))
   (setf (alist-get 'verible-verilog-format apheleia-formatters)
         '("verible-verilog-format" "--indentation_spaces" "2" "-")))
+
+(use-package scad-mode
+  :straight (:host github
+             :repo "openscad/emacs-scad-mode"
+             :files ("*.el"))
+  :mode ("\\.scad\\'" . scad-mode)
+  :preface
+  (defun am/scad-eglot-setup ()
+    (remove-hook 'flymake-diagnostic-functions #'scad-flymake t)
+    (eglot-ensure))
+  :hook (scad-mode . am/scad-eglot-setup)
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(scad-mode . ("openscad-lsp" "--stdio")))))
+
+(with-eval-after-load 'org
+  (require 'ob-scad)
+  (add-to-list 'org-babel-load-languages '(scad . t)))
