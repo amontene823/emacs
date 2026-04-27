@@ -1144,79 +1144,101 @@ With a prefix ARG, remove start location."
   :init
   (savehist-mode))
 
-(when (eq system-type 'gnu/linux) ;; Check if the OS is gnu/linux
-  (file-name-nondirectory (expand-file-name "~/references/images"))
+(when (and (eq system-type 'gnu/linux)
+           (or (getenv "WSL_DISTRO_NAME")
+               (getenv "WSL_INTEROP")
+               (getenv "WSLENV")))
+  (defun my-org--paste-image-program ()
+    "Return the helper used to save a Windows clipboard image."
+    (or (executable-find "win-paste-image")
+        (let ((fallback "/run/current-system/sw/bin/win-paste-image"))
+          (and (file-executable-p fallback) fallback))
+        (user-error "win-paste-image is not on PATH; rebuild the WSL host")))
 
-  (defun my-org-paste-image-to-dir ()
-    "Paste an image into a time stamped unique-named file in the
-      same directory as the org-buffer and insert a link to this file."
-    (interactive)
-    (let* ((image-filename
-            (concat
-             (read-from-minibuffer "Enter something: ") ".png"))
-    	   (unix-path
-            (concat
-             (expand-file-name "~")
-             "/references/images/"
-             image-filename))
-           (wsl-path
-            (as-windows-path (concat
-			      (expand-file-name "~")
-			      "/references/images/"
-			      image-filename)))
-           (ps-script
-            (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+  (defun my-org--require-image-paste-target ()
+    "Return the current Org file, or signal why image paste cannot continue."
+    (unless (derived-mode-p 'org-mode)
+      (user-error "This command is intended for Org buffers"))
+    (or (buffer-file-name)
+        (user-error "Save this Org buffer before pasting an image")))
 
-      (powershell ps-script)
-      (message "here is") (message wsl-path) (message image-filename)
-
-      (if (file-exists-p unix-path)
-          (progn (insert (concat "[[" unix-path"]]"))
-                 (org-display-inline-images))
-        (user-error
-         "Error pasting the image, make sure you have an image in the clipboard!"))
-      ))
-
-  (file-exists-p "\\wsl.localhost\\arch\\home\\angelo\\references\\images\\test.png")
-  (defun my-org-paste-image ()
-    "Paste an image into a time stamped unique-named file in the
-      same directory as the org-buffer and insert a link to this file."
-    (interactive)
-    (let* ((target-file
+  (defun my-org--paste-windows-clipboard-image (target-file)
+    "Save the Windows clipboard image to TARGET-FILE."
+    (let* ((program (my-org--paste-image-program))
+           (target-dir (file-name-directory target-file))
+           (temp-file
             (concat
              (make-temp-name
-              (concat (buffer-file-name)
-                      "_"
-                      (format-time-string "%Y%m%d_"))) ".png"))
-           (wsl-path
-            (concat (as-windows-path(file-name-directory target-file))
-                    "\\"
-                    (file-name-nondirectory target-file)))
-           (ps-script
-            (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+              (expand-file-name ".clipboard-image-" target-dir))
+             ".png")))
+      (unwind-protect
+          (progn
+            (make-directory target-dir t)
+            (with-temp-buffer
+              (let ((exit-code (call-process program nil t nil temp-file)))
+                (unless (and (integerp exit-code) (zerop exit-code))
+                  (let ((output
+                         (replace-regexp-in-string
+                          "\\`[ \t\n\r]+\\|[ \t\n\r]+\\'" "" (buffer-string))))
+                    (user-error
+                     "Could not paste Windows clipboard image%s"
+                     (if (string= output "") "" (concat ": " output)))))))
+            (unless (and (file-readable-p temp-file)
+                         (> (file-attribute-size (file-attributes temp-file)) 0))
+              (user-error "win-paste-image did not create a readable image file"))
+            (rename-file temp-file target-file t))
+        (when (file-exists-p temp-file)
+          (delete-file temp-file))))
+    target-file)
 
-      (powershell ps-script)
+  (defvar my-org-pasted-image-width 600
+    "Default pixel width for images pasted into Org buffers.")
 
-      (if (file-exists-p target-file)
-          (progn (insert (concat "[[" target-file "]]"))
-                 (org-display-inline-images))
-        (user-error
-         "Error pasting the image, make sure you have an image in the clipboard!"))
-      ))
+  (defun my-org--insert-image-link (target-file org-file)
+    "Insert a resized Org image link to TARGET-FILE relative to ORG-FILE."
+    (let* ((org-dir (file-name-directory org-file))
+           (link (org-link-escape (file-relative-name target-file org-dir))))
+      (insert
+       (format
+        "#+ATTR_ORG: :width %d\n#+ATTR_HTML: :width %dpx\n#+ATTR_LATEX: :width 0.8\\linewidth\n[[file:%s]]"
+        my-org-pasted-image-width
+        my-org-pasted-image-width
+        link))
+      (org-display-inline-images)))
 
-  (defun as-windows-path (unix-path)
-    "Takes a unix path and returns a matching WSL path
-      (e.g. \\\\wsl$\\Ubuntu-20.04\\tmp)"
-    ;; substring removes the trailing \n
-    (substring
-     (shell-command-to-string
-      (concat "wslpath -w " unix-path)) 0 -1))
+  (defun my-org-paste-image ()
+    "Paste the Windows clipboard image next to the current Org file."
+    (interactive)
+    (let* ((org-file (my-org--require-image-paste-target))
+           (org-dir (file-name-directory org-file))
+           (prefix
+            (expand-file-name
+             (format "%s_%s_"
+                     (file-name-base org-file)
+                     (format-time-string "%Y%m%d"))
+             org-dir))
+           (target-file (concat (make-temp-name prefix) ".png")))
+      (my-org--paste-windows-clipboard-image target-file)
+      (my-org--insert-image-link target-file org-file)))
 
-  (defun powershell (script)
-    "executes the given script within a powershell and returns its return value"
-    (call-process "powershell.exe" nil nil nil
-                  "-Command" (concat "& {" script "}")))
-  )
+  (defun my-org-paste-image-to-dir (image-name)
+    "Paste the Windows clipboard image into ~/references/images/IMAGE-NAME.png."
+    (interactive "sImage name: ")
+    (let* ((org-file (my-org--require-image-paste-target))
+           (name (file-name-sans-extension
+                  (file-name-nondirectory image-name)))
+           (target-file
+            (expand-file-name
+             (concat name ".png")
+             (expand-file-name "~/references/images/"))))
+      (when (string= name "")
+        (user-error "Image name cannot be empty"))
+      (when (and (file-exists-p target-file)
+                 (not (yes-or-no-p
+                       (format "Overwrite %s? " target-file))))
+        (user-error "Cancelled"))
+      (my-org--paste-windows-clipboard-image target-file)
+      (my-org--insert-image-link target-file org-file))))
 
 ;; WSL-specific setup
 (when (and (eq system-type 'gnu/linux)
