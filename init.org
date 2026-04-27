@@ -1561,6 +1561,17 @@ There are 112 pdf files in this directory
       "fr" '(consult-recent-file :which-key "Recent Files")
       "ff" '(find-file :which-key "Find File")
 
+      "p"  '(:ignore p :which-key "Project")
+      "pp" '(projectile-switch-project :which-key "Switch Project")
+      "pf" '(projectile-find-file :which-key "Find File")
+      "pd" '(projectile-find-dir :which-key "Find Directory")
+      "ps" '(projectile-ripgrep :which-key "Search Project")
+      "pt" '(projectile-run-vterm :which-key "Project Terminal")
+      "pb" '(projectile-ibuffer :which-key "Project Buffers")
+      "pk" '(projectile-kill-buffers :which-key "Kill Buffers")
+      "pc" '(projectile-compile-project :which-key "Compile Project")
+      "pr" '(projectile-replace :which-key "Replace Project")
+
       "l"  '(:ignore l :which-key "Latex")
       "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
 
