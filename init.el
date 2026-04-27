@@ -257,6 +257,20 @@
 (use-package treemacs-evil
   :after (treemacs evil))
 
+(defun am/treemacs-enable-leader-keys ()
+  "Expose the main leader maps in Treemacs buffers."
+  (when (and (boundp 'evil-normal-state-map)
+             (boundp 'evil-treemacs-state-map)
+             (boundp 'treemacs-mode-map))
+    (let ((space-leader (lookup-key evil-normal-state-map (kbd "SPC")))
+          (control-space-leader (lookup-key evil-normal-state-map (kbd "C-SPC"))))
+      (when (keymapp space-leader)
+        (define-key evil-treemacs-state-map (kbd "SPC") space-leader)
+        (define-key treemacs-mode-map (kbd "SPC") space-leader))
+      (when (keymapp control-space-leader)
+        (define-key evil-treemacs-state-map (kbd "C-SPC") control-space-leader)
+        (define-key treemacs-mode-map (kbd "C-SPC") control-space-leader)))))
+
 (use-package treemacs-projectile
   :after (treemacs projectile))
 
@@ -1072,6 +1086,37 @@ With a prefix ARG, remove start location."
             '((side . bottom)
               (slot . -1)
               (window-height . 10)))))))))
+
+  (defun am/project-ide-toggle ()
+    "Toggle Treemacs and a project-specific vterm for the current project."
+    (interactive)
+    (require 'projectile)
+    (require 'treemacs)
+    (require 'vterm)
+    (let* ((project-root (projectile-acquire-root))
+           (vterm-buffer-name
+            (projectile-generate-process-name "vterm" nil project-root))
+           (vterm-buffer (get-buffer vterm-buffer-name))
+           (vterm-window (and vterm-buffer
+                              (get-buffer-window vterm-buffer nil)))
+           (treemacs-window (treemacs-get-local-window)))
+      (if (and (window-live-p treemacs-window)
+               (window-live-p vterm-window))
+          (progn
+            (delete-window vterm-window)
+            (delete-window treemacs-window))
+        (treemacs-add-and-display-current-project)
+        (unless (buffer-live-p vterm-buffer)
+          (setq vterm-buffer (get-buffer-create vterm-buffer-name))
+          (with-current-buffer vterm-buffer
+            (setq-local default-directory project-root)
+            (vterm-mode)))
+        (select-window
+         (display-buffer-in-side-window
+          vterm-buffer
+          '((side . bottom)
+            (slot . -1)
+            (window-height . 10)))))))
 (use-package org-download
   :config
   (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
@@ -1247,7 +1292,7 @@ With a prefix ARG, remove start location."
     "pf" '(projectile-find-file :which-key "Find File")
     "pd" '(projectile-find-dir :which-key "Find Directory")
     "ps" '(projectile-ripgrep :which-key "Search Project")
-    "pt" '(projectile-run-vterm :which-key "Project Terminal")
+    "pt" '(am/project-ide-toggle :which-key "Toggle IDE View")
     "pb" '(projectile-ibuffer :which-key "Project Buffers")
     "pk" '(projectile-kill-buffers :which-key "Kill Buffers")
     "pc" '(projectile-compile-project :which-key "Compile Project")
@@ -1273,7 +1318,9 @@ With a prefix ARG, remove start location."
 
     "t"  '(:ignore b :which-key "Text")
     "ta" '(text-scale-adjust :which-key "Adjust Text Scale")
-    ))
+    )
+  (with-eval-after-load 'treemacs-evil
+    (am/treemacs-enable-leader-keys)))
 
 (use-package eglot
   :straight (:type built-in)
