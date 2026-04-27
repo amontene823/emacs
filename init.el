@@ -854,6 +854,15 @@
    (C . t)))
 (setq org-confirm-babel-evaluate nil)
 
+(defun am/org-babel-refresh-inline-images ()
+  "Refresh inline image previews after evaluating Org Babel blocks."
+  (when (derived-mode-p 'org-mode)
+    (if (fboundp 'org-link-preview-refresh)
+        (org-link-preview-refresh)
+      (org-display-inline-images nil t))))
+
+(add-hook 'org-babel-after-execute-hook #'am/org-babel-refresh-inline-images)
+
 ;; Adjusts org latex font
 (setq org-format-latex-options '(:foreground default :background default :scale 1.5 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers ("begin" "$1" "$" "$$" "\\(" "\\[")))
 
