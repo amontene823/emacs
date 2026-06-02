@@ -844,6 +844,9 @@
   (org-modern-star 'replace)
   (org-modern-timestamp nil))
 
+(use-package org-ql
+  :after org)
+
 (use-package org-roam
   :init
   (setq org-roam-vs-ack t)
