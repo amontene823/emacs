@@ -926,6 +926,164 @@ Improves emacs startup time
     (setq org-todo-keywords
           '((sequence "TODO(t)" "IN-PROGRESS(i)" "WAITING(w)" "ORDERED(o)" "|" "DONE(d)" "CANCELLED(c)" "RECEIVED(r)")))
     (setq org-hierarchical-todo-statistics nil)
+
+    (defvar am/org-dashboard-summary--updating nil
+      "Non-nil while updating a dashboard summary TODO state.")
+
+    (defun am/org-dashboard-summary-heading-p ()
+      "Return non-nil when the current Org heading is a dashboard summary."
+      (string= (downcase (or (org-entry-get nil "DASHBOARD") "")) "summary"))
+
+    (defun am/org-dashboard-summary--all-states-in-p (states accepted-states)
+      "Return non-nil when every item in STATES is in ACCEPTED-STATES."
+      (let ((all-states-match t))
+        (dolist (state states all-states-match)
+          (unless (member state accepted-states)
+            (setq all-states-match nil)))))
+
+    (defun am/org-dashboard-summary--child-todo-states ()
+      "Return TODO states for descendants of the current summary heading."
+      (let ((summary-point (point))
+            (summary-level (org-current-level))
+            states)
+        (save-excursion
+          (org-map-entries
+           (lambda ()
+             (let ((state (org-get-todo-state)))
+               (when (and state
+                          (/= (point) summary-point)
+                          (> (org-current-level) summary-level))
+                 (push state states))))
+           nil
+           'tree))
+        (nreverse states)))
+
+    (defun am/org-dashboard-summary--target-state (states)
+      "Return the parent TODO state implied by child TODO STATES."
+      (cond
+       ((null states) nil)
+       ((am/org-dashboard-summary--all-states-in-p states org-done-keywords)
+        (if (am/org-dashboard-summary--all-states-in-p states '("RECEIVED"))
+            "RECEIVED"
+          "DONE"))
+       ((member "IN-PROGRESS" states) "IN-PROGRESS")
+       ((member "ORDERED" states) "ORDERED")
+       ((member "WAITING" states) "WAITING")
+       (t "TODO")))
+
+    (defun am/org-dashboard-summary--nearest-summary-point ()
+      "Return the nearest dashboard summary heading at or above point."
+      (save-excursion
+        (cond
+         ((am/org-dashboard-summary-heading-p) (point))
+         (t
+          (let (summary-point)
+            (while (and (not summary-point) (org-up-heading-safe))
+              (when (am/org-dashboard-summary-heading-p)
+                (setq summary-point (point))))
+            summary-point)))))
+
+    (defun am/org-dashboard-summary-update-parent ()
+      "Update the nearest dashboard summary TODO state from child TODO states."
+      (unless am/org-dashboard-summary--updating
+        (let ((summary-point (am/org-dashboard-summary--nearest-summary-point)))
+          (when summary-point
+            (let ((am/org-dashboard-summary--updating t))
+              (save-excursion
+                (goto-char summary-point)
+                (let* ((states (am/org-dashboard-summary--child-todo-states))
+                       (target-state (am/org-dashboard-summary--target-state states))
+                       (current-state (org-get-todo-state)))
+                  (when (and target-state
+                             current-state
+                             (not (string= current-state target-state)))
+                    (org-todo target-state)))))))))
+
+    (defvar am/org-dashboard-cost--updating nil
+      "Non-nil while updating dashboard summary COST properties.")
+
+    (defun am/org-dashboard-cost--parse-number (value)
+      "Parse VALUE as a numeric Org property."
+      (when (and value (string-match-p "[0-9]" value))
+        (let ((cleaned (replace-regexp-in-string "[,$[:space:]]" "" value)))
+          (when (string-match-p
+                 "\\`[-+]?\\(?:[0-9]+\\(?:\\.[0-9]*\\)?\\|\\.[0-9]+\\)\\'"
+                 cleaned)
+            (string-to-number cleaned)))))
+
+    (defun am/org-dashboard-cost--format (value)
+      "Format VALUE as a COST property."
+      (format "%.2f" value))
+
+    (defun am/org-dashboard-cost--child-total ()
+      "Return (COUNT . TOTAL) for priced child headings under point."
+      (let ((summary-point (point))
+            (summary-level (org-current-level))
+            (count 0)
+            (total 0.0))
+        (save-excursion
+          (org-map-entries
+           (lambda ()
+             (when (and (/= (point) summary-point)
+                        (> (org-current-level) summary-level))
+               (let ((unit-cost (am/org-dashboard-cost--parse-number
+                                 (org-entry-get nil "UNIT_COST")))
+                     (quantity (am/org-dashboard-cost--parse-number
+                                (org-entry-get nil "QUANTITY"))))
+                 (when (and unit-cost quantity)
+                   (setq count (1+ count))
+                   (setq total (+ total (* unit-cost quantity)))))))
+           nil
+           'tree))
+        (cons count total)))
+
+    (defun am/org-dashboard-cost-update-at-point ()
+      "Update the COST property for the dashboard summary heading at point."
+      (when (am/org-dashboard-summary-heading-p)
+        (let* ((existing-cost (org-entry-get nil "COST"))
+               (priced-total (am/org-dashboard-cost--child-total))
+               (priced-count (car priced-total))
+               (cost (am/org-dashboard-cost--format (cdr priced-total))))
+          (when (or (> priced-count 0) existing-cost)
+            (unless (string= (or existing-cost "") cost)
+              (org-entry-put nil "COST" cost))))))
+
+    (defun am/org-dashboard-cost-update-parent ()
+      "Update the nearest dashboard summary COST property."
+      (interactive)
+      (let ((summary-point (am/org-dashboard-summary--nearest-summary-point)))
+        (unless summary-point
+          (user-error "No dashboard summary heading at or above point"))
+        (save-excursion
+          (goto-char summary-point)
+          (am/org-dashboard-cost-update-at-point))))
+
+    (defun am/org-dashboard-cost-update-buffer ()
+      "Update COST properties for dashboard summary headings in the current buffer."
+      (interactive)
+      (unless am/org-dashboard-cost--updating
+        (let ((am/org-dashboard-cost--updating t)
+              summary-markers)
+          (org-with-wide-buffer
+           (org-map-entries
+            (lambda ()
+              (when (am/org-dashboard-summary-heading-p)
+                (push (point-marker) summary-markers)))
+            nil
+            'file)
+           (dolist (marker (nreverse summary-markers))
+             (goto-char marker)
+             (am/org-dashboard-cost-update-at-point)
+             (set-marker marker nil))))))
+
+    (defun am/org-dashboard-cost-enable ()
+      "Enable dashboard summary COST rollups in the current Org buffer."
+      (add-hook 'before-save-hook #'am/org-dashboard-cost-update-buffer nil t))
+
+    (add-hook 'org-after-todo-state-change-hook
+              #'am/org-dashboard-summary-update-parent)
+    (add-hook 'org-mode-hook #'am/org-dashboard-cost-enable)
+
     (am/org-font-setup)
     (am/org-setup))
 
