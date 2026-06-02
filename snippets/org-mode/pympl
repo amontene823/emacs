@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: python matplotlib src block
+# key: <pympl
+# --
+#+begin_src python :results graphics file output :file tmp_plot0.png
+$0
+#+end_src
