@@ -827,7 +827,9 @@
         org-adapt-indentation t
         org-startup-indented t
         org-agenda-files
-        '("~/org"))
+        '("~/org")
+        org-attach-id-dir (expand-file-name "~/references/attach/")
+        org-attach-store-link-p 'attached)
   ;; (setq org-blank-before-new-entry
   ;; '((heading . nil)
   ;; (plain-list-item . auto)))
@@ -1141,6 +1143,13 @@ With a prefix ARG, remove start location."
     (LaTeX-mode . citar-capf-setup)
     (org-mode . citar-capf-setup))
   (setq org-cite-global-bibliography '("~/references/bibfile.bib"))
+  (use-package citeproc
+    :after org)
+  (setq org-cite-csl-locales-dir
+        (expand-file-name "~/references/csl/locales"))
+  (setq org-cite-export-processors
+        `((html . (csl ,(expand-file-name "~/references/csl/nature.csl")))
+          (t . (csl ,(expand-file-name "~/references/csl/nature.csl")))))
 
   (use-package citar-embark
     :after citar embark
