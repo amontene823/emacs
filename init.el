@@ -289,6 +289,11 @@
   :config
   (evil-commentary-mode))
 
+(setq ispell-program-name "aspell")
+(setq ispell-dictionary "en_US")
+(setq ispell-personal-dictionary
+      (expand-file-name "spell/en_US.pws" user-emacs-directory))
+
 (dolist (hook '(text-mode-hook))
   (add-hook hook (lambda () (flyspell-mode 1))))
 
