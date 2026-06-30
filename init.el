@@ -45,13 +45,7 @@
 
 (straight-use-package 'use-package)
 (setq straight-use-package-by-default t)
-;; (setq package-enable-at-startup nil)
 
-;; (use-package envrc
-;; :config
-;; (envrc-global-mode))
-;; Don't run direnv/envrc inside org-src edit buffers (org-edit-special)
-;; (add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
 (use-package envrc
   :config
   (defun am/envrc-enable-for-buffer ()
@@ -62,20 +56,6 @@
   (add-hook 'find-file-hook #'am/envrc-enable-for-buffer)
   (add-hook 'verilog-mode-hook #'am/envrc-enable-for-buffer)
   (add-hook 'verilog-ts-mode-hook #'am/envrc-enable-for-buffer))
-
-;; (use-package direnv
-;;   :config
-;;   (direnv-mode))
-
-;; Use ./ .venv python for org-babel in buffers under that project.
-;; (defun angelo/org-babel-use-project-venv ()
-;;   (let* ((root (or (locate-dominating-file default-directory ".venv")
-;;                    default-directory))
-;;          (py (expand-file-name ".venv/bin/python" root)))
-;;     (when (file-executable-p py)
-;;       (setq-local org-babel-python-command py))))
-
-;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 
 (setq user-full-name "Angelo Montenegro"
       user-mail-address "amontene823@gmail.com")
@@ -194,14 +174,6 @@
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
-;; (use-package undo-tree
-;;   :config
-;;   ;; autosave the undo-tree history
-;;   (setq undo-tree-history-directory-alist
-;;         `((".*" . ,temporary-file-directory)))
-;;   (setq undo-tree-auto-save-history t)
-;;   (global-undo-tree-mode +1)
-;;   (diminish 'undo-tree-mode))
 
 ;; revert buffers automatically when underlying files are changed externally
 (setq auto-revert-avoid-polling t)
@@ -326,54 +298,6 @@
        (define-key flyspell-mouse-map [down-mouse-3] #'flyspell-correct-word)
        (define-key flyspell-mouse-map [mouse-3] #'undefined))))
 
-;; modeline completion
-;; (use-package ivy
-;;   :diminish
-;;   :bind (("C-s" . swiper)
-;;          :map ivy-minibuffer-map
-;;          ("TAB" . ivy-alt-done)
-;;          ("C-l" . ivy-alt-done)
-;;          ("C-j" . ivy-next-line)
-;;          ("C-k" . ivy-previous-line)
-;;          :map ivy-switch-buffer-map
-;;          ("C-k" . ivy-previous-line)
-;;          ("C-l" . ivy-done)
-;;          ("C-d" . ivy-switch-buffer-kill)
-;;          :map ivy-reverse-i-search-map
-;;          ("C-k" . ivy-previous-line)
-;;          ("C-d" . ivy-reverse-i-search-kill))
-;;   :config
-;;   (ivy-mode 1))
-;; ;; (use-package ivy-bibtex
-;; ;;   :after (ivy)
-;;   :custom
-;;   (bibtex-completion-bibliography '("~/org/references/bibfile.bib"))
-;;   (bibtex-completion-library-path '("~/org/references")))
-
-;; (use-package org-ref
-;;   :after ivy-bibtex
-;;   :custom
-;;   (reftex-default-bibliography '("~/org/references/bibfile.bib"))
-;;   ;;(org-ref-bibliography-notes "~/org/references/notes.org")
-;;   (org-ref-default-bibliography '("~/org/references/bibfile.bib"))
-;;   (org-ref-pdf-directory "~/org/references/"))
-;; (require 'org-ref-ivy)
-
-;; ;; Key bindings and documentation string
-;; (use-package ivy-rich
-;;   :config
-;;   (ivy-rich-mode 1))
-
-
-;; (use-package counsel
-;;   :bind (("M-x" . counsel-M-x)
-;;          ("C-x b" . counsel-ibuffer)
-;;          ("C-x C-f" . counsel-find-file)
-;;          :map minibuffer-local-map
-;;          ("C-r" . 'counsel-minibuffer-history))
-;;   :config
-;;   (setq ivy-initial-inputs-alist nil))
-
 (use-package vertico
   ;; :custom
   ;; (vertico-scroll-margin 0) ;; Different scroll margin
@@ -481,15 +405,6 @@
   ;; Enable the ultra-scroll mode
   (ultra-scroll-mac-mode 1))
 
-;; (use-package orderless
-;;   :custom
-;;   ;; Configure a custom style dispatcher (see the Consult wiki)
-;;   ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
-;;   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
-;;   (completion-styles '(orderless basic))
-;;   (completion-category-defaults nil)
-;;   (completion-category-overrides '((file (styles partial-completion)))))
-
 (use-package orderless
   :init
   ;; Tune the global completion style settings to your liking!
@@ -497,7 +412,6 @@
   (setq completion-styles '(orderless partial-completion basic)
         completion-category-defaults nil
         completion-category-overrides nil))
-
 
 (use-package consult
   ;; Replace bindings. Lazily loaded by `use-package'.
@@ -672,16 +586,6 @@
   (add-hook 'after-save-hook #'my-custom-function nil t))
 
 (add-hook 'LaTeX-mode-hook #'add-latex-save-hook)
-
-;; (defun my-custom-function ()
-;; (TeX-command-run-all nil))
-;; (add-hook 'after-save-hook 'my-custom-function)
-
-;; (use-package latex-preview-pane
-;; :after auctex
-;; :config
-;; (latex-preview-pane-enable)
-;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
 (use-package markdown-mode
   :mode (("\\.md\\'" . gfm-mode)
@@ -1625,9 +1529,6 @@ With a prefix ARG, remove start location."
             (lambda (&rest _)
               (when buffer-file-name (ignore-errors (recenter)))))
 
-;; (use-package nix-mode
-;; :mode ("\\.nix\\'" . nix-mode)
-;; :hook (nix-mode . eglot-ensure))
 (use-package nix-mode
   :mode "\\.nix\\'")
 

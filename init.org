@@ -77,7 +77,6 @@ Improves emacs startup time
 
   (straight-use-package 'use-package)
   (setq straight-use-package-by-default t)
-  ;; (setq package-enable-at-startup nil)
 #+end_src
 
 #+RESULTS:
@@ -86,11 +85,6 @@ Improves emacs startup time
 *** direnv
 
 #+begin_src emacs-lisp
-  ;; (use-package envrc
-  ;; :config
-  ;; (envrc-global-mode))
-  ;; Don't run direnv/envrc inside org-src edit buffers (org-edit-special)
-  ;; (add-hook 'org-src-mode-hook (lambda () (envrc-mode -1)))
   (use-package envrc
     :config
     (defun am/envrc-enable-for-buffer ()
@@ -101,20 +95,6 @@ Improves emacs startup time
     (add-hook 'find-file-hook #'am/envrc-enable-for-buffer)
     (add-hook 'verilog-mode-hook #'am/envrc-enable-for-buffer)
     (add-hook 'verilog-ts-mode-hook #'am/envrc-enable-for-buffer))
-
-  ;; (use-package direnv
-  ;;   :config
-  ;;   (direnv-mode))
-
-  ;; Use ./ .venv python for org-babel in buffers under that project.
-  ;; (defun angelo/org-babel-use-project-venv ()
-  ;;   (let* ((root (or (locate-dominating-file default-directory ".venv")
-  ;;                    default-directory))
-  ;;          (py (expand-file-name ".venv/bin/python" root)))
-  ;;     (when (file-executable-p py)
-  ;;       (setq-local org-babel-python-command py))))
-
-  ;; (add-hook 'org-mode-hook #'angelo/org-babel-use-project-venv)
 #+end_src
 
 *** Look and Feel
@@ -236,14 +216,6 @@ Improves emacs startup time
         `((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms
         `((".*" ,temporary-file-directory t)))
-  ;; (use-package undo-tree
-  ;;   :config
-  ;;   ;; autosave the undo-tree history
-  ;;   (setq undo-tree-history-directory-alist
-  ;;         `((".*" . ,temporary-file-directory)))
-  ;;   (setq undo-tree-auto-save-history t)
-  ;;   (global-undo-tree-mode +1)
-  ;;   (diminish 'undo-tree-mode))
 
   ;; revert buffers automatically when underlying files are changed externally
   (setq auto-revert-avoid-polling t)
@@ -387,64 +359,13 @@ Improves emacs startup time
          (define-key flyspell-mouse-map [mouse-3] #'undefined))))
 
 #+end_src
-** Ivy, counsel
-#+begin_src emacs-lisp
-  ;; modeline completion
-  ;; (use-package ivy
-  ;;   :diminish
-  ;;   :bind (("C-s" . swiper)
-  ;;          :map ivy-minibuffer-map
-  ;;          ("TAB" . ivy-alt-done)
-  ;;          ("C-l" . ivy-alt-done)
-  ;;          ("C-j" . ivy-next-line)
-  ;;          ("C-k" . ivy-previous-line)
-  ;;          :map ivy-switch-buffer-map
-  ;;          ("C-k" . ivy-previous-line)
-  ;;          ("C-l" . ivy-done)
-  ;;          ("C-d" . ivy-switch-buffer-kill)
-  ;;          :map ivy-reverse-i-search-map
-  ;;          ("C-k" . ivy-previous-line)
-  ;;          ("C-d" . ivy-reverse-i-search-kill))
-  ;;   :config
-  ;;   (ivy-mode 1))
-  ;; ;; (use-package ivy-bibtex
-  ;; ;;   :after (ivy)
-  ;;   :custom
-  ;;   (bibtex-completion-bibliography '("~/org/references/bibfile.bib"))
-  ;;   (bibtex-completion-library-path '("~/org/references")))
-
-  ;; (use-package org-ref
-  ;;   :after ivy-bibtex
-  ;;   :custom
-  ;;   (reftex-default-bibliography '("~/org/references/bibfile.bib"))
-  ;;   ;;(org-ref-bibliography-notes "~/org/references/notes.org")
-  ;;   (org-ref-default-bibliography '("~/org/references/bibfile.bib"))
-  ;;   (org-ref-pdf-directory "~/org/references/"))
-  ;; (require 'org-ref-ivy)
-
-  ;; ;; Key bindings and documentation string
-  ;; (use-package ivy-rich
-  ;;   :config
-  ;;   (ivy-rich-mode 1))
-
-
-  ;; (use-package counsel
-  ;;   :bind (("M-x" . counsel-M-x)
-  ;;          ("C-x b" . counsel-ibuffer)
-  ;;          ("C-x C-f" . counsel-find-file)
-  ;;          :map minibuffer-local-map
-  ;;          ("C-r" . 'counsel-minibuffer-history))
-  ;;   :config
-  ;;   (setq ivy-initial-inputs-alist nil))
-
-#+end_src
 ** Vertico, Consult, Embark, Marginalia, Corfu Stack
-*** Corfu provides child frames with completion canditates in the buffer, TAB to activate
-*** Vertico is similar to corfu, but provides completions in the minibuffer
-*** Marginalia provides useful documentation info in Vertico
-*** Consult provides useful tools, e.g., buffer searching for strings
-*** Embark provides content-aware actions
-*** Orderless allows search to return results searches that are out of order
+- Corfu provides child frames with completion canditates in the buffer, TAB to activate
+- Vertico is similar to corfu, but provides completions in the minibuffer
+- Marginalia provides useful documentation info in Vertico
+- Consult provides useful tools, e.g., buffer searching for strings
+- Embark provides content-aware actions
+- Orderless allows search to return results searches that are out of order
 
 #+begin_src emacs-lisp
   (use-package vertico
@@ -554,15 +475,6 @@ Improves emacs startup time
     ;; Enable the ultra-scroll mode
     (ultra-scroll-mac-mode 1))
 
-  ;; (use-package orderless
-  ;;   :custom
-  ;;   ;; Configure a custom style dispatcher (see the Consult wiki)
-  ;;   ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
-  ;;   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
-  ;;   (completion-styles '(orderless basic))
-  ;;   (completion-category-defaults nil)
-  ;;   (completion-category-overrides '((file (styles partial-completion)))))
-
   (use-package orderless
     :init
     ;; Tune the global completion style settings to your liking!
@@ -570,7 +482,6 @@ Improves emacs startup time
     (setq completion-styles '(orderless partial-completion basic)
           completion-category-defaults nil
           completion-category-overrides nil))
-
 
   (use-package consult
     ;; Replace bindings. Lazily loaded by `use-package'.
@@ -750,16 +661,6 @@ Improves emacs startup time
     (add-hook 'after-save-hook #'my-custom-function nil t))
 
   (add-hook 'LaTeX-mode-hook #'add-latex-save-hook)
-
-  ;; (defun my-custom-function ()
-  ;; (TeX-command-run-all nil))
-  ;; (add-hook 'after-save-hook 'my-custom-function)
-
-  ;; (use-package latex-preview-pane
-  ;; :after auctex
-  ;; :config
-  ;; (latex-preview-pane-enable)
-  ;; :hook (LaTeX-mode . latex-preview-pane-mode))
 
 #+end_src
 
@@ -1368,7 +1269,7 @@ Improves emacs startup time
           for f in pdfs:
               citekey = Path(f).stem
               if citekey in existing:
-                  print(f, 'Already added to bibfile... skipping')
+                  # print(f, 'Already added to bibfile... skipping')
                   continue
 
               result = pdf2bib.pdf2bib(f)
@@ -1398,127 +1299,7 @@ Improves emacs startup time
 #+end_src
 
 #+RESULTS:
-#+begin_example
-There are 117 pdf files in this directory
-/home/angelo/references/articles/puncken2010intrinsic.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/nihonyanagi2009direct.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/ferrari2006raman.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/volpi2019bridgman.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/ohno2022comparison.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/henderson2002knowing.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/pues2020temperature.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/karimov2021growth.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/huffer1978astigmatically.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/winiski1986an.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/stevens2017commercializing.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/huang2021tracking.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/partoens2006from.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhong2016nonradiative.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/yang2018mechanism.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhang2020electromechanics.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/franken1961generation.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/vyatkin2011thermally.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/thakre2019pyroelectric.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/gonella2021water.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/daniel2020analytical.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/das2011electronic.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/lipfert2014understanding.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/lumeau2016a.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/walter2010solar.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/liu2017wurtzite.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhang2020modelling.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/helmholtz1853ueber.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/guo2008nanostructured.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/chapman1913li.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/froehlicher2015raman.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/bose2024annealfree.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/fumagalli2018anomalously.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/sridhar2010cavity.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/mcmillan1984a.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/escola2019investigation.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/novoselov2004electric.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/eaves2005hydrogen.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/sun2015surface.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/champagne2013theoretical.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/ohno2017secondorder.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/cao2013synthesis.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/koechner1970thermal.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/dutta2019reorientation.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/pisana2007breakdown.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/nair2008fine.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/sun2018orientational.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/song1993selftrapped.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/lage2004ramanspectroscopic.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/you2004synthesis.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/vasyliev2012uvvisible.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhou2018electrostatic.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/shimamura2001crystal.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/chynoweth1956dynamic.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/1979potassium.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/malyk2013vibrational.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/tong2017experimentally.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/laage2017water.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/dhar2017vibrational.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/kristensen2001ultravioletlightinduced.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/cummings2002demonstration.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/liu2022a.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhang2020waterjump.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/souza2011effect.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/debnath2016lowloss.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhang2011communication.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/gouy1910sur.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/backus2020probing.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/gan2005orientation.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/dreier2019surfacespecific.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/vojna2020verdet.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/weber1978magnetooptical.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/efimov2002measurement.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/helmholtz1879studien.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/kogelnik1966laser.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/bjorneholm2016water.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/kang2001hydrothermal.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/zhang2020water.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/peijzel2005a.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/cha2020interference.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/vojna2019verdet.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/amdursky2019exploring.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/meyer1982the.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/chenghai2007thermal.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/boretti2018outlook.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/gragson1998investigations.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/2406.14296v1.pdf Adding to bibfile...
-key: ji2024efficient
-/home/angelo/references/articles/ohno2019subnucleosomal.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/ohto2018structure.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/glebova2008role.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/2001infrared.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/salman2019electrooxidation.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/bratko2007effect.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/jalali2017characterization.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/das2008monitoring.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/mironov2019euf2based.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/ji2024efficient.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/auer2007hydrogen.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/yoshikawa2013czochralski.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/basko2009electronelectron.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/roth2009directly.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/david2013understanding.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/snetkov2018features.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/markel2016introduction.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/willamowski1996&lt;title&gt;calorimetric.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/balci2015grapheneenabled.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/von2013dynamics.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/chen2018plasmonically.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/casiraghi2007raman.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/schaefer2017surfacespecific.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/mironov2019thermooptical.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/lee2017synergistically.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/largeau1998synthesis.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/mukhin2005influence.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/wen2016unveiling.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/dodia2019structure.pdf Already added to bibfile... skipping
-/home/angelo/references/articles/dreier2018saturation.pdf Already added to bibfile... skipping
-#+end_example
+: There are 116 pdf files in this directory
 
 ** Other Packages
 #+begin_src emacs-lisp
@@ -1775,6 +1556,7 @@ key: ji2024efficient
 : powershell
 
 **  Spacemacs
+
 #+begin_src emacs-lisp
   (use-package general
     :config
@@ -1865,6 +1647,7 @@ key: ji2024efficient
 
 * Programming
 *** LSP
+
 #+begin_src emacs-lisp
   (use-package eglot
     :straight (:type built-in)
@@ -1886,8 +1669,8 @@ key: ji2024efficient
     (add-to-list 'org-src-lang-modes '("cpp" . c++)))
   #+end_src
 
-#+RESULTS:
 ** Apheleia
+
 #+begin_src emacs-lisp
   (use-package apheleia
     :hook (prog-mode . apheleia-mode)
@@ -1972,9 +1755,6 @@ key: ji2024efficient
 
 ** Nix
 #+begin_src emacs-lisp
-  ;; (use-package nix-mode
-  ;; :mode ("\\.nix\\'" . nix-mode)
-  ;; :hook (nix-mode . eglot-ensure))
   (use-package nix-mode
     :mode "\\.nix\\'")
 #+end_src
