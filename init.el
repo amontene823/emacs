@@ -1257,6 +1257,29 @@ With a prefix ARG, remove start location."
               (slot . -1)
               (window-height . 10)))))))))
 
+  (defun am/vterm-open ()
+    "Open the persistent vterm window at the bottom of the frame."
+    (let ((buffer (get-buffer am/vterm-buffer-name)))
+      (unless (buffer-live-p buffer)
+        (require 'vterm)
+        (setq buffer (get-buffer-create am/vterm-buffer-name))
+        (with-current-buffer buffer
+          (vterm-mode)))
+      (select-window
+       (display-buffer-in-side-window
+        buffer
+        '((side . bottom)
+          (slot . -1)
+          (window-height . 10))))))
+
+  (defun am/rclone-copy-references ()
+    "Run the references rclone copy command in the persistent vterm window."
+    (interactive)
+    (am/vterm-open)
+    (vterm-send-string
+     "rclone copy ~/references dropbox:references --filter-from ~/references/rclone-ignore.txt -P")
+    (vterm-send-return))
+
   (defun am/project-ide-toggle ()
     "Toggle Treemacs and a project-specific vterm for the current project."
     (interactive)
@@ -1478,6 +1501,7 @@ With a prefix ARG, remove start location."
     "f"  '(:ignore f :which-key "Files")
     "fr" '(consult-recent-file :which-key "Recent Files")
     "ff" '(find-file :which-key "Find File")
+    "fc" '(am/rclone-copy-references :which-key "Copy References")
 
     "p"  '(:ignore p :which-key "Project")
     "pp" '(projectile-switch-project :which-key "Switch Project")
