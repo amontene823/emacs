@@ -342,7 +342,7 @@
   :ensure-system-package
   ((codex-acp . "npm install -g --prefix ~/.local @agentclientprotocol/codex-acp"))
   :init
-  (setq agent-shell-prefer-viewport-interaction t)
+  (setq agent-shell-prefer-viewport-interaction nil)
   :config
   (setq agent-shell-openai-authentication
         (agent-shell-openai-make-authentication :login t))

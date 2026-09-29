@@ -389,6 +389,8 @@ Improves emacs startup time
 #+end_src
 ** Agent Shell
 
+Use the full conversation buffer (questions and answers together) by default.
+
 #+begin_src emacs-lisp
   (use-package agent-shell
     :commands (agent-shell
@@ -410,7 +412,7 @@ Improves emacs startup time
     :ensure-system-package
     ((codex-acp . "npm install -g --prefix ~/.local @agentclientprotocol/codex-acp"))
     :init
-    (setq agent-shell-prefer-viewport-interaction t)
+    (setq agent-shell-prefer-viewport-interaction nil)
     :config
     (setq agent-shell-openai-authentication
           (agent-shell-openai-make-authentication :login t))
@@ -1603,7 +1605,11 @@ Files that already exist in DESTINATION are skipped."
 #+end_src
 
 #+RESULTS:
-: There are 116 pdf files in this directory
+: There are 126 pdf files in this directory
+: /home/angelo/references/articles/s41598-023-46877-4.pdf Adding to bibfile...
+: key: mckay2023highconfinement
+: /home/angelo/references/articles/ol-50-7-2159.pdf Adding to bibfile...
+: key: dullo2025lowloss
 
 ** Other Packages
 #+begin_src emacs-lisp
