@@ -417,6 +417,14 @@ Use the full conversation buffer (questions and answers together) by default.
     (setq agent-shell-openai-authentication
           (agent-shell-openai-make-authentication :login t))
 
+    ;; Prefer the standalone Codex on PATH over codex-acp's bundled version.
+    ;; This remains portable across macOS and WSL; codex-acp falls back to its
+    ;; bundled Codex if no standalone executable is available.
+    (when-let* ((codex (executable-find "codex")))
+      (setq agent-shell-openai-codex-environment
+            (agent-shell-make-environment-variables
+             "CODEX_PATH" codex)))
+
     (setq agent-shell-write-inhibit-minor-modes
           '(aggressive-indent-mode))
 
@@ -1473,7 +1481,7 @@ Files that already exist in DESTINATION are skipped."
         (save-excursion
           (org-map-entries
            (lambda ()
-             (when-let ((directory (org-attach-dir)))
+             (when-let* ((directory (org-attach-dir)))
                (dolist (file (org-attach-file-list directory))
                  (push (expand-file-name file directory) files))))
            nil 'file)))
@@ -1645,7 +1653,7 @@ Files that already exist in DESTINATION are skipped."
         (if (window-live-p window)
             (delete-window window)
           (let ((default-directory
-                 (or (when-let ((project (project-current nil)))
+                 (or (when-let* ((project (project-current nil)))
                        (project-root project))
                      default-directory)))
             (unless (buffer-live-p buffer)
@@ -1740,6 +1748,20 @@ Files that already exist in DESTINATION are skipped."
     :init
     (savehist-mode))
 
+
+#+end_src
+
+** Darwin
+#+begin_src emacs-lisp
+
+  (when (eq system-type 'darwin)
+    (defun am/darwin-open-in-finder (directory _link)
+      "Open DIRECTORY in Finder."
+      (start-process "open-in-finder" nil "open" directory))
+
+    (with-eval-after-load 'org
+      (add-to-list 'org-file-apps
+                   '(directory . am/darwin-open-in-finder))))
 
 #+end_src
 
