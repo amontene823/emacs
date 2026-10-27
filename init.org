@@ -106,18 +106,47 @@ Improves emacs startup time
 #+end_src
 
 *** direnv
+Keep each project's environment local to its buffers, including compilation and
+REPL buffers. Enable the global mode after startup so it runs before other
+global minor modes when opening files.
 
 #+begin_src emacs-lisp
   (use-package envrc
+    :hook (after-init . envrc-global-mode))
+#+end_src
+
+*** File recovery
+Keep backups and autosaves outside project directories, but in persistent
+storage. Numbered backups retain the two oldest and six newest versions,
+including for files tracked by version control.
+
+#+begin_src emacs-lisp
+  (defconst angelo-savefile-dir
+    (expand-file-name "savefile/" user-emacs-directory))
+  (make-directory angelo-savefile-dir t)
+
+  (use-package saveplace
     :config
-    (defun am/envrc-enable-for-buffer ()
-      (when (and buffer-file-name
-                 (not (minibufferp))
-                 (not (bound-and-true-p org-src-mode)))
-        (envrc-mode 1)))
-    (add-hook 'find-file-hook #'am/envrc-enable-for-buffer)
-    (add-hook 'verilog-mode-hook #'am/envrc-enable-for-buffer)
-    (add-hook 'verilog-ts-mode-hook #'am/envrc-enable-for-buffer))
+    (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
+    (save-place-mode +1))
+
+  (let ((backup-dir (expand-file-name "backups/" angelo-savefile-dir))
+        (autosave-dir (expand-file-name "autosaves/" angelo-savefile-dir)))
+    (make-directory backup-dir t)
+    (make-directory autosave-dir t)
+    (setq backup-directory-alist `(("." . ,backup-dir))
+          auto-save-file-name-transforms `((".*" ,autosave-dir t))))
+
+  (setq backup-by-copying t
+        version-control t
+        delete-old-versions t
+        kept-old-versions 2
+        kept-new-versions 6
+        vc-make-backup-files t)
+
+  ;; Revert unmodified buffers when files change outside Emacs.
+  (setq auto-revert-avoid-polling t)
+  (global-auto-revert-mode 1)
 #+end_src
 
 *** Look and Feel
@@ -128,17 +157,6 @@ Improves emacs startup time
   (setq native-comp-async-report-warnings-errors 'silent)
   ;; quit emacs directly, even if there are running processes
   (setq confirm-kill-processes nil)
-
-  ;;
-  (defconst angelo-savefile-dir (expand-file-name "savefile" user-emacs-directory))
-  ;; create the savefile dir if it doesn't exist
-  (unless (file-exists-p angelo-savefile-dir)
-    (make-directory angelo-savefile-dir))
-  (use-package saveplace
-    :config
-    (setq save-place-file (expand-file-name "saveplace" angelo-savefile-dir))
-    ;; activate it for all buffers
-    (save-place-mode +1))
 
   ;; remove toolbar
   (when (fboundp 'tool-bar-mode)
@@ -234,16 +252,6 @@ Improves emacs startup time
     (diminish 'flyspell-prog-mode)
     (diminish 'eldoc-mode))
 
-  ;; store all backup and autosave files in the tmp dir
-  (setq backup-directory-alist
-        `((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-        `((".*" ,temporary-file-directory t)))
-
-  ;; revert buffers automatically when underlying files are changed externally
-  (setq auto-revert-avoid-polling t)
-  (global-auto-revert-mode t)
-
   ;; make it possible to navigate to the C source of Emacs functions
   (setq find-function-C-source-directory "~/projects/emacs")
 
@@ -266,12 +274,10 @@ Improves emacs startup time
               (setq-local electric-pair-inhibit-predicate
                           #'am/org-electric-pair-inhibit)))
 
+  ;; Highlight whitespace; let Apheleia handle formatting on save.
+  ;; Avoid rewriting unrelated lines just because a buffer was saved.
   (use-package whitespace
-    :init
-    (add-hook 'prog-mode-hook #'whitespace-mode)
-    (add-hook 'prog-mode-hook
-              (lambda ()
-                (add-hook 'before-save-hook #'whitespace-cleanup nil t)))
+    :hook (prog-mode . whitespace-mode)
     :config
     (setq whitespace-line-column 80)
     (setq whitespace-style '(face tabs empty trailing lines-tail)))
@@ -797,17 +803,173 @@ Use the full conversation buffer (questions and answers together) by default.
     (setq TeX-command-extra-options "-synctex=1 -interaction=nonstopmode -file-line-error")
     )
 
-  (defun my-custom-function ()
-    "Automatically run `TeX-command-run-all` when a LaTeX file is saved."
-    (TeX-command-run-all nil))
-
-  (defun add-latex-save-hook ()
-    "Add a save hook to compile LaTeX files."
-    (add-hook 'after-save-hook #'my-custom-function nil t))
-
-  (add-hook 'LaTeX-mode-hook #'add-latex-save-hook)
-
 #+end_src
+
+*** Optional compilation on save
+Compile manually with =TeX-command-run-all= by default. To compile on each save
+in a particular project, add this to its =.dir-locals.el=:
+
+#+begin_example
+((LaTeX-mode . ((am/latex-compile-on-save . t))))
+#+end_example
+
+#+begin_src emacs-lisp
+  (defvar-local am/latex-compile-on-save nil
+    "Non-nil means compile this LaTeX buffer after saving it.")
+  (put 'am/latex-compile-on-save 'safe-local-variable #'booleanp)
+
+  (defun am/latex-compile-after-save ()
+    "Compile the current LaTeX buffer when explicitly enabled."
+    (when am/latex-compile-on-save
+      (TeX-command-run-all nil)))
+
+  (defun am/latex-save-setup ()
+    "Install the buffer-local hook for optional LaTeX compilation."
+    (add-hook 'after-save-hook #'am/latex-compile-after-save nil t))
+
+  (add-hook 'LaTeX-mode-hook #'am/latex-save-setup)
+#+end_src
+
+** Typst
+*** Tools and editing
+Use =typst-ts-mode= for highlighting and indentation, Tinymist through Eglot
+for completion and diagnostics, and Tinymist's built-in Typstyle for formatting.
+The existing =SPC d= development keys work in Typst buffers too.
+
+External tools must be on PATH: =typst= and =tinymist=. On this Mac they are
+managed by the Typst feature in =~/Projects/myNixOS= through Home Manager.
+Rebuild the Darwin configuration after changing those packages. For projects
+with their own Nix environments, include the tools in the development shell
+and allow its =.envrc=. Tinymist includes the formatter, so no separate =typstyle= binary
+is needed.
+
+The Typst tree-sitter grammar is installed once per machine with
+=M-x treesit-install-language-grammar RET typst=. Its source is registered below.
+
+#+begin_src emacs-lisp
+  (use-package typst-ts-mode
+    :straight (:type git :host codeberg :repo "meow_king/typst-ts-mode"
+               :files ("*.el"))
+    :mode ("\\.typ\\'" . typst-ts-mode)
+    :init
+    (require 'treesit)
+    (add-to-list 'treesit-language-source-alist
+                 '(typst "https://github.com/uben0/tree-sitter-typst"))
+    :hook ((typst-ts-mode . am/typst-setup)
+           (eglot-managed-mode . am/typst-pin-main))
+    :custom
+    (typst-ts-preview-function #'am/typst-view-pdf)
+    :config
+    (with-eval-after-load 'eglot
+      (add-to-list 'eglot-server-programs '(typst-ts-mode . ("tinymist")))
+      ;; Eglot reads workspace settings from the project, outside source buffers.
+      (setq-default eglot-workspace-configuration
+                    (plist-put (default-value 'eglot-workspace-configuration)
+                               :tinymist '(:exportPdf "onSave"
+                                           :formatterMode "typstyle"
+                                           :formatterPrintWidth 80)))))
+
+  (defvar-local am/typst-format-on-save t
+    "Non-nil means format this Typst buffer with Tinymist before saving.")
+  (put 'am/typst-format-on-save 'safe-local-variable #'booleanp)
+
+  (defun am/typst-setup ()
+    "Set up Typst editing, formatting, and PDF export on save."
+    (visual-line-mode 1)
+    ;; Tinymist handles formatting here; Apheleia still handles other languages.
+    (apheleia-mode -1)
+    (setq-local tab-width 2)
+    (add-hook 'hack-local-variables-hook #'am/typst-start-eglot nil t)
+    (add-hook 'before-save-hook #'am/typst-before-save nil t))
+
+  (defun am/typst-start-eglot ()
+    "Start Tinymist after the file's local variables and environment are ready."
+    (when (and buffer-file-name
+               (not (file-remote-p default-directory)))
+      (when (and (not (bound-and-true-p envrc-mode))
+                 (executable-find "direnv"))
+        (envrc-mode 1))
+      (when (and (not (eq (bound-and-true-p envrc--status) 'error))
+                 (executable-find "tinymist"))
+        (eglot-ensure))))
+
+  (defun am/typst-pin-main ()
+    "Keep Tinymist's export target consistent with the current Typst main file."
+    (when (and (derived-mode-p 'typst-ts-mode)
+               (eglot-managed-p))
+      (eglot-execute-command
+       (eglot-current-server) "tinymist.pinMain"
+       (vector (typst-ts-compile-get-target-file)))))
+
+  (defun am/typst-before-save ()
+    "Select the main document and format before Tinymist exports on save."
+    (when (eglot-managed-p)
+      (am/typst-pin-main)
+      (when am/typst-format-on-save
+        (eglot-format))))
+
+  (defun am/typst-view-pdf (file)
+    "Open the compiled Typst PDF FILE in another Emacs window."
+    (unless (and file (file-exists-p file))
+      (user-error "Compile the document first with SPC m c"))
+    (find-file-other-window file))
+#+end_src
+
+*** Live preview
+Use =SPC m p= to start or stop a browser preview, and =SPC m j= to jump from
+source to preview. The preview updates while typing; Tinymist also writes a PDF
+on save. =SPC m o= opens that exported PDF with the existing PDF Tools setup.
+Opening a Typst file starts language support, while preview is started explicitly.
+
+#+begin_src emacs-lisp
+  (use-package typst-preview
+    :straight (:host github :repo "havarddj/typst-preview.el")
+    :commands (typst-preview-mode typst-preview-connected-p
+               typst-preview-send-position))
+
+  (defun am/typst-preview-toggle ()
+    "Toggle a live browser preview of the current Typst document."
+    (interactive)
+    (require 'typst-preview)
+    (if (typst-preview-connected-p)
+        (typst-preview-mode -1)
+      (unless (and buffer-file-name (file-exists-p buffer-file-name))
+        (user-error "Save the Typst buffer before starting preview"))
+      (setq-local typst-preview--master-file
+                  (typst-ts-compile-get-target-file))
+      ;; Honor a project-local root; derive the default again on each start.
+      (let ((typst-preview-default-dir
+             (if (local-variable-p 'typst-preview-default-dir)
+                 typst-preview-default-dir
+               (file-name-directory typst-preview--master-file))))
+        (typst-preview-mode 1))))
+
+  (defun am/typst-preview-jump ()
+    "Jump from the current Typst source position to the live preview."
+    (interactive)
+    (unless (typst-preview-connected-p)
+      (user-error "Start the live preview first with SPC m p"))
+    (typst-preview-send-position))
+#+end_src
+
+*** Main documents and project settings
+For a document with included files, use =SPC m m= in each source file to choose
+the main document. The mode saves =typst-main-file= as a relative file-local
+path; compilation, PDF export, and live preview then use that same document.
+Stop the preview before changing the main document, then start it again.
+
+PDFs are written beside the main document by default. To customize a project's
+root or output directory, use =M-x add-dir-local-variable= for =typst-ts-mode=:
+- =typst-preview-default-dir= sets the live preview's root directory.
+- =typst-ts-common-options= can pass =--root= and a directory to the Typst CLI.
+- =typst-ts-output-directory= sets the manual compiler's PDF directory.
+- =eglot-workspace-configuration= accepts Tinymist's =rootPath= and =outputPath=.
+  Keep =exportPdf= set to =onSave= and =formatterMode= set to =typstyle=.
+- Set =am/typst-format-on-save= to =nil= to keep formatting manual in a project.
+
+Keep the root and output paths consistent across the CLI, Tinymist, and preview.
+Absolute paths also work when included source files are in different directories.
+Reopen existing Typst buffers after changing directory-local settings.
 
 ** Markdown
 #+begin_src emacs-lisp
@@ -889,6 +1051,15 @@ Use the full conversation buffer (questions and answers together) by default.
 #+end_src
 
 * Org-Mode
+Org's line spacing is buffer local. For more room around the text, toggle
+=am/org-writing-mode= with =SPC o w=; it adds window margins without resizing
+frames or changing code and PDF windows.
+
+Attachments use =~/references/attach/= on every platform. Image downloads and
+clipboard paste commands use Org attachment directories. Only =ID= and =DIR=
+inherit from parent headings, so unrelated properties keep their usual scope.
+Existing explicit file links and =DIR= properties continue to work.
+
 #+begin_src emacs-lisp
   (defun am/org-font-setup ()
     ;; Replace list hyphen with dot
@@ -916,18 +1087,8 @@ Use the full conversation buffer (questions and answers together) by default.
     (set-face-attribute 'org-column-title nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
-  (defun am/org-setup()
-    ;; Add frame borders and window dividers
-    (modify-all-frames-parameters
-     '((right-divider-width . 40)
-       (internal-border-width . 40)))
-    (dolist (face '(window-divider
-                    window-divider-first-pixel
-                    window-divider-last-pixel))
-      (face-spec-reset-face face)
-      (set-face-foreground face (face-attribute 'default :background)))
-    (set-face-background 'fringe (face-attribute 'default :background))
-
+  (defun am/org-setup ()
+    "Configure shared Org editing and agenda preferences."
     (setq
      ;; Edit settings
      org-auto-align-tags nil
@@ -935,7 +1096,6 @@ Use the full conversation buffer (questions and answers together) by default.
      org-catch-invisible-edits 'show-and-error
      org-special-ctrl-a/e t
      org-insert-heading-respect-content t
-     line-spacing 0.1
 
      org-pretty-entities-include-sub-superscripts nil
      ;; Org styling, hide markup etc.
@@ -957,8 +1117,17 @@ Use the full conversation buffer (questions and answers together) by default.
     (set-face-attribute 'org-ellipsis nil :inherit 'default :box nil)
     (set-face-attribute 'org-table nil :inherit 'fixed-pitch) )
 
+  (define-minor-mode am/org-writing-mode
+    "Use comfortable window margins for the current Org buffer."
+    :lighter " Write"
+    (setq-local left-margin-width (when am/org-writing-mode 3)
+                right-margin-width (when am/org-writing-mode 3))
+    (dolist (window (get-buffer-window-list (current-buffer) nil t))
+      (set-window-margins window left-margin-width right-margin-width)))
+
   (defun am/org-mode-setup ()
-    ;; (org-indent-mode 1)
+    "Set up the appearance of an Org buffer."
+    (setq-local line-spacing 0.1)
     (variable-pitch-mode 1)
     (visual-line-mode 1))
 
@@ -968,13 +1137,15 @@ Use the full conversation buffer (questions and answers together) by default.
     (org-mode . am/org-mode-setup)
     ;; (org-src-mode-hook . company-mode)
     :config
+    (require 'org-attach)
     (setq org-image-actual-width nil
           org-adapt-indentation t
           org-startup-indented t
           org-agenda-files
           '("~/org")
           org-attach-id-dir (expand-file-name "~/references/attach/")
-          org-attach-store-link-p 'attached)
+          org-attach-store-link-p 'attached
+          org-use-property-inheritance '("ID" "DIR"))
     ;; (setq org-blank-before-new-entry
     ;; '((heading . nil)
     ;; (plain-list-item . auto)))
@@ -1501,26 +1672,6 @@ Files that already exist in DESTINATION are skipped."
                (plist-get result :skipped)
                (plist-get result :missing))))
 
-  ;; Sci-hub
-(defun sci-hub-pdf-url (doi)
-  "Get url to the pdf from SCI-HUB"
-  (setq *doi-utils-pdf-url* (concat "https://sci-hub.se/" doi) ;captcha
-        *doi-utils-waiting* t
-        )
-  ;; try to find PDF url (if it exists)
-  (url-retrieve (concat "https://sci-hub.se/" doi)
-            (lambda (status)
-              (goto-char (point-min))
-              (while (search-forward-regexp "\\(https://\\|//sci-hub.se/downloads\\).+download=true'" nil t)
-                (let ((foundurl (match-string 0)))
-                  (message foundurl)
-                  (if (string-match "https:" foundurl)
-                  (setq *doi-utils-pdf-url* foundurl)
-                (setq *doi-utils-pdf-url* (concat "https:" foundurl))))
-                (setq *doi-utils-waiting* nil))))
-  (while *doi-utils-waiting* (sleep-for 0.1))
-  *doi-utils-pdf-url*)
-
 #+end_src
 
     - Custom Python function that leverages pdf2bib library to convert a library of pdf literature to a bibfile
@@ -1723,7 +1874,7 @@ Files that already exist in DESTINATION are skipped."
               (window-height . 10)))))))
   (use-package org-download
     :config
-    (setq org-download-image-dir "~/Figures/")  ; Set the directory where images will be saved
+    (setq org-download-method 'attach)
     ;; (setq org-download-screenshot-method "gnome-screenshot -a -f %s")  ; Set the method for screenshot
     (setq org-download-screenshot-method "grim -g \"$(slurp)\" %s")
     (add-hook 'dired-mode-hook 'org-download-enable) ;Enable org-download in dired-mode
@@ -1734,11 +1885,6 @@ Files that already exist in DESTINATION are skipped."
     :if (eq window-system 'mac)
     :config
     (org-mac-image-paste-mode 1)
-    (setq org-use-property-inheritance t) ;Inherit :ID/etc. from parent nodes
-    (setq org-image-actual-width nil)  ;allow #+ATTR_ORG: :width 300 etc.
-    (setq org-attach-id-dir "../../Figures") ;; copy-pasted files in Figures dir
-    ;; (setq org-attach-id-dir ".org-attach") ; make the attachment directory less visible
-
     ;; Optional: You can bind the paste image function to a key if desired
     (define-key org-mode-map (kbd "C-c C-x p") #'org-mac-image-paste)
     )
@@ -1818,43 +1964,43 @@ Files that already exist in DESTINATION are skipped."
     (defvar my-org-pasted-image-width 600
       "Default pixel width for images pasted into Org buffers.")
 
-    (defun my-org--insert-image-link (target-file org-file)
-      "Insert a resized Org image link to TARGET-FILE relative to ORG-FILE."
-      (let* ((org-dir (file-name-directory org-file))
-             (link (org-link-escape (file-relative-name target-file org-dir))))
+    (defun my-org--insert-image-link (target-file)
+      "Insert a resized attachment link to TARGET-FILE."
+      (org-attach-sync)
+      (let ((link (org-link-escape (file-name-nondirectory target-file))))
         (insert
          (format
-          "#+ATTR_ORG: :width %d\n#+ATTR_HTML: :width %dpx\n#+ATTR_LATEX: :width 0.8\\linewidth\n[[file:%s]]"
+          "#+ATTR_ORG: :width %d\n#+ATTR_HTML: :width %dpx\n#+ATTR_LATEX: :width 0.8\\linewidth\n[[attachment:%s]]"
           my-org-pasted-image-width
           my-org-pasted-image-width
           link))
         (org-display-inline-images)))
 
     (defun my-org-paste-image ()
-      "Paste the Windows clipboard image next to the current Org file."
+      "Paste the Windows clipboard image into the current heading's attachments."
       (interactive)
       (let* ((org-file (my-org--require-image-paste-target))
-             (org-dir (file-name-directory org-file))
+             (attachment-dir (org-attach-dir t))
              (prefix
               (expand-file-name
                (format "%s_%s_"
                        (file-name-base org-file)
                        (format-time-string "%Y%m%d"))
-               org-dir))
+               attachment-dir))
              (target-file (concat (make-temp-name prefix) ".png")))
         (my-org--paste-windows-clipboard-image target-file)
-        (my-org--insert-image-link target-file org-file)))
+        (my-org--insert-image-link target-file)))
 
     (defun my-org-paste-image-to-dir (image-name)
-      "Paste the Windows clipboard image into ~/references/images/IMAGE-NAME.png."
+      "Paste a named Windows clipboard image into the current heading's attachments."
       (interactive "sImage name: ")
-      (let* ((org-file (my-org--require-image-paste-target))
-             (name (file-name-sans-extension
+      (my-org--require-image-paste-target)
+      (let* ((name (file-name-sans-extension
                     (file-name-nondirectory image-name)))
              (target-file
               (expand-file-name
                (concat name ".png")
-               (expand-file-name "~/references/images/"))))
+               (org-attach-dir t))))
         (when (string= name "")
           (user-error "Image name cannot be empty"))
         (when (and (file-exists-p target-file)
@@ -1862,7 +2008,7 @@ Files that already exist in DESTINATION are skipped."
                          (format "Overwrite %s? " target-file))))
           (user-error "Cancelled"))
         (my-org--paste-windows-clipboard-image target-file)
-        (my-org--insert-image-link target-file org-file)))
+        (my-org--insert-image-link target-file)))
 
     (defun am/wsl--windows-path (path)
       "Return PATH converted to a Windows path."
@@ -1912,6 +2058,8 @@ Files that already exist in DESTINATION are skipped."
 : powershell
 
 **  Spacemacs
+The =SPC d= development commands use the current buffer's language server and
+xref backend. =SPC d e= lists Flymake diagnostics; =SPC g s= opens Magit status.
 
 #+begin_src emacs-lisp
   (use-package general
@@ -2002,6 +2150,16 @@ Files that already exist in DESTINATION are skipped."
       "pc" '(projectile-compile-project :which-key "Compile Project")
       "pr" '(projectile-replace :which-key "Replace Project")
 
+      "d"  '(:ignore t :which-key "Development")
+      "dr" '(eglot-rename :which-key "Rename Symbol")
+      "da" '(eglot-code-actions :which-key "Code Actions")
+      "dd" '(xref-find-definitions :which-key "Definition")
+      "df" '(xref-find-references :which-key "References")
+      "de" '(consult-flymake :which-key "Diagnostics")
+
+      "g"  '(:ignore t :which-key "Git")
+      "gs" '(magit-status :which-key "Status")
+
       "l"  '(:ignore l :which-key "Latex")
       "lg" '(pdf-sync-forward-search :which-key "source-to-pdf")
 
@@ -2011,6 +2169,7 @@ Files that already exist in DESTINATION are skipped."
       "od" '(org-toggle-inline-images :which-key "Toggle Images")
       "or" '(org-mac-image-paste-refresh-this-node :which-key "Refresh Images")
       "oe" '(org-edit-special :which-key "org Edit Special")
+      "ow" '(am/org-writing-mode :which-key "Writing Margins")
 
       "c"  '(:ignore c :which-key "Citations")
       "ci" '(citar-insert-citation :which-key "insert-citation")
@@ -2024,7 +2183,19 @@ Files that already exist in DESTINATION are skipped."
       "ta" '(text-scale-adjust :which-key "Adjust Text Scale")
       )
     (with-eval-after-load 'treemacs-evil
-      (am/treemacs-enable-leader-keys)))
+      (am/treemacs-enable-leader-keys))
+
+    (with-eval-after-load 'typst-ts-mode
+      (am/leader-keys
+        :states '(normal insert visual emacs)
+        :keymaps 'typst-ts-mode-map
+        "m"  '(:ignore t :which-key "Typst")
+        "mc" '(typst-ts-compile :which-key "Compile PDF")
+        "mp" '(am/typst-preview-toggle :which-key "Toggle Live Preview")
+        "mj" '(am/typst-preview-jump :which-key "Jump to Preview")
+        "mf" '(eglot-format :which-key "Format")
+        "mo" '(typst-ts-preview :which-key "Open PDF")
+        "mm" '(typst-ts-main-file-ask :which-key "Set Main Document"))))
 #+end_src
 
 * Programming
@@ -2083,39 +2254,78 @@ Files that already exist in DESTINATION are skipped."
           (c-mode . c-ts-mode)
           (c++-mode . c++-ts-mode)))
 
-  (defun uv-activate ()
-    "Activate Python environment managed by uv based on current project directory."
+#+end_src
+
+*** Project environments and REPLs
+Use direnv when a project provides an environment. Otherwise, use a local
+=.venv= if it exists; standalone files and projects without one still open
+normally. Resolve the environment before starting Pyright, and leave the global
+Emacs environment unchanged. =M-x uv-activate= can also select a project's
+=.venv= explicitly for the current buffer.
+
+Start a REPL when needed with =M-x run-python=. Shells are dedicated to the
+project, or to the buffer for standalone files (Emacs 31 or newer).
+
+#+begin_src emacs-lisp
+  (defun uv-activate (&optional directory)
+    "Activate DIRECTORY, or the project's .venv, in the current buffer."
     (interactive)
-    (let* ((project-root (project-root (project-current t)))
-           (venv-path (expand-file-name ".venv" project-root))
-           (python-path (expand-file-name
-                         (if (eq system-type 'windows-nt)
-                             "Scripts/python.exe"
-                           "bin/python")
-                         venv-path)))
-      (if (file-exists-p python-path)
-          (unless (equal (getenv "VIRTUAL_ENV") venv-path)
-            (setq python-shell-interpreter python-path)
-            (let ((venv-bin-dir (file-name-directory python-path)))
-              (setq exec-path (cons venv-bin-dir
-                                    (remove venv-bin-dir exec-path))))
-            (setenv "PATH" (concat (file-name-directory python-path)
-                                   path-separator
-                                   (getenv "PATH")))
-            (setenv "VIRTUAL_ENV" venv-path)
-            (setenv "PYTHONHOME" nil)
-            (message "Activated UV Python environment at %s" venv-path))
-        (error "No UV Python environment found in %s" project-root))))
+    (let* ((project (unless directory (project-current nil)))
+           (venv-path (or directory
+                          (when project
+                            (expand-file-name ".venv" (project-root project)))))
+           (python-path (when venv-path
+                          (expand-file-name
+                           (if (eq system-type 'windows-nt)
+                               "Scripts/python.exe"
+                             "bin/python")
+                           venv-path))))
+      (unless (and python-path (file-executable-p python-path))
+        (user-error "No executable Python in this project's .venv"))
+      (let ((bin-dir (file-name-directory python-path)))
+        (setq-local process-environment (copy-sequence process-environment)
+                    exec-path (cons bin-dir (remove bin-dir exec-path))
+                    python-shell-interpreter python-path)
+        (setenv "PATH"
+                (mapconcat #'identity
+                           (cons bin-dir
+                                 (remove bin-dir
+                                         (split-string (or (getenv "PATH") "")
+                                                       path-separator t)))
+                           path-separator))
+        (setenv "VIRTUAL_ENV" venv-path)
+        (setenv "PYTHONHOME" nil))))
 
   (defun am/python-project-setup ()
+    "Choose a buffer-local Python environment before starting Eglot."
     (when (and buffer-file-name
-               (string-match-p "\\.py\\'" buffer-file-name))
-      (uv-activate)
-      (eglot-ensure)
-      (unless (python-shell-get-process)
-        (run-python))))
+               (not (file-remote-p default-directory)))
+      ;; Major-mode hooks can run before the global envrc hook.
+      (when (and (not (bound-and-true-p envrc-mode))
+                 (executable-find "direnv"))
+        (envrc-mode 1))
+      (unless (eq (bound-and-true-p envrc--status) 'error)
+        (let* ((project (project-current nil))
+               (venv-path (when project
+                            (expand-file-name ".venv" (project-root project))))
+               (python-path (when venv-path
+                              (expand-file-name
+                               (if (eq system-type 'windows-nt)
+                                   "Scripts/python.exe"
+                                 "bin/python")
+                               venv-path))))
+          (setq-local python-shell-interpreter
+                      (or (executable-find "python3")
+                          (executable-find "python")
+                          python-shell-interpreter)
+                      python-shell-dedicated (if project 'project 'buffer))
+          (when (and (not (eq (bound-and-true-p envrc--status) 'on))
+                     python-path (file-executable-p python-path))
+            (uv-activate venv-path))
+          (when (executable-find "pyright-langserver")
+            (eglot-ensure))))))
 
-  (add-hook 'python-ts-mode-hook #'am/python-project-setup)
+  (add-hook 'python-base-mode-hook #'am/python-project-setup)
 
   ;; (use-package lazy-ruff
   ;; :bind (("C-c f" . lazy-ruff-lint-format-dwim)) ;; keybinding

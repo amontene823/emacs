@@ -68,6 +68,8 @@
  ("themes" . "376cf4bdd7d296a3da94aa9a6c68761e7c38a252")
  ("transient" . "453376f2f1a0beab45da06c84a9e57692afc0607")
  ("treesit-auto" . "016bd286a1ba4628f833a626f8b9d497882ecdf3")
+ ("typst-preview.el" . "f2903a1b98e13be7c927de835ae0d9159dd9fb9a")
+ ("typst-ts-mode" . "ee17b331ebfa8d8b7c2f54a1c39ab3d76e134706")
  ("ultra-scroll-mac" . "203178269451177e07d19f1e200a726217b6b436")
  ("use-package" . "c95bceeadad393ef5e9c85e3172e3434f9fbaaca")
  ("vertico" . "63a43e13805ca3bc06f9492323d66e238c5d0fea")
